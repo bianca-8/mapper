@@ -1,0 +1,65 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Courier New', Courier, monospace;
+    background: rgb(158, 211, 175);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+}
+
+header h1 {
+    font-size: 2.5em;
+    margin-bottom: 5px;
+}
+
+header p {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+.container {
+    max-width: 80vw;
+    margin: 0 auto;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+#map {
+    width: 100%;
+    height: 600px;
+    border-radius: 5px;
+    position: relative;
+    overflow: hidden;
+    filter: grayscale(0.85) brightness(0.95);
+}
+
+.info {
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    margin-top: 20px;
+}
+
+.info p {
+    margin: 10px 0;
+    font-size: 1.1em;
+    color: #333;
+}
