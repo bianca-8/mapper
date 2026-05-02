@@ -70,15 +70,18 @@ class MapTracker {
         // circle at visited location
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
-        
+
         ctx.globalCompositeOperation = 'destination-out';
         ctx.fillStyle = 'rgba(0, 0, 0, 1)';
-        const radius = 80;
-        
+        const radiusM = 500; // circle radius (meters)
+
         for (let location of this.visitedLocations) {
             const point = this.map.latLngToContainerPoint(location);
+            const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+            const point2 = this.map.latLngToContainerPoint(latLng2);
+            const pixelRadius = Math.abs(point2.y - point.y);
             ctx.beginPath();
-            ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+            ctx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
             ctx.fill();
         }
     }
