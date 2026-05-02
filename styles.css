@@ -48,7 +48,6 @@ button {
     border-radius: 5px;
     position: relative;
     overflow: hidden;
-    filter: grayscale(0.85) brightness(0.95);
 }
 
 .info {
