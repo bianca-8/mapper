@@ -4,7 +4,6 @@
     box-sizing: border-box;
 }
 
-
 body {
     font-family: 'Courier New', Courier, monospace;
     background: rgb(158, 211, 175);
@@ -17,7 +16,10 @@ body {
 }
 
 header {
-    text-align: center;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     color: white;
     margin-bottom: 2vh;
 }
@@ -77,9 +79,183 @@ button {
     margin: 2vh 0;
     font-size: 1.5vw;
     color: #333;
-    display:flex;
-    justify-content:center;
+    display: flex;
+    justify-content: center;
     gap: 1vw;
+}
+
+#app-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+/* profile */
+#profile-btn {
+    position: absolute;
+    right: 2vw;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid white;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0;
+    transition: transform 0.2s;
+}
+
+#profile-btn:hover { transform: translateY(-50%) scale(1.1); }
+
+#profile-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#profile-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#profile-panel {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    width: 340px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    position: relative;
+    font-family: 'Courier New', monospace;
+}
+
+#close-profile {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #666;
+    padding: 0;
+}
+
+#avatar-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+#avatar-preview {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgb(158, 211, 175);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    font-weight: bold;
+    color: white;
+    overflow: hidden;
+    border: 3px solid #eee;
+}
+
+#modal-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+#avatar-upload-label {
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: rgb(100, 170, 130);
+    text-decoration: underline;
+    font-family: 'Courier New', monospace;
+}
+
+.profile-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.profile-field label {
+    font-size: 0.8rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.field-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.field-row input[type="text"] {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+}
+
+.field-row input[type="color"] {
+    width: 44px;
+    height: 36px;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    padding: 2px;
+    cursor: pointer;
+}
+
+.field-row button {
+    padding: 0.5rem 1rem;
+    background: rgb(158, 211, 175);
+    color: white;
+    border-radius: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+#username-note {
+    font-size: 0.78rem;
+    color: #e07040;
+    min-height: 1rem;
+}
+
+#logout-btn {
+    background: #eee;
+    color: #555;
+    font-family: 'Courier New', monospace;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+}
+
+#profile-status {
+    font-size: 0.85rem;
+    color: rgb(100, 170, 130);
+    text-align: center;
+    min-height: 1rem;
 }
 
 /* auth */
@@ -138,8 +314,4 @@ button {
     font-size: 0.85rem;
     background: #eee;
     color: #333;
-}
-
-#app-screen {
-    width: 100%;
 }

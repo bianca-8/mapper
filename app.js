@@ -3,6 +3,74 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+let tracker = null;
+let currentProfile = null;
+
+// ── profile ────
+async function loadProfile(userId) {
+    console.log('loadProfile called with userId:', userId);
+    try {
+        console.log('Querying profiles table...');
+        
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Profile query timeout')), 3000)
+        );
+        
+        const queryPromise = sb.from('profiles').select('*').eq('id', userId).single();
+        const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
+        
+        console.log('Query complete. Error:', error, 'Data:', data);
+        if (error) {
+            console.log('Profile not found, creating default profile');
+            const { error: createError } = await sb.from('profiles').insert({ 
+                id: userId, 
+                username: 'User', 
+                color: '#ffffff' 
+            });
+            if (createError) {
+                console.error('Failed to create profile:', createError);
+                return null;
+            }
+            return { id: userId, username: 'User', color: '#ffffff' };
+        }
+        console.log('loadProfile result:', data);
+        return data;
+    } catch (e) {
+        console.error('loadProfile error:', e.message);
+        return null;
+    }
+}
+
+function getContrastColor(hex) {
+    if (!hex || hex.length < 7) return '#000';
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return (r*0.299 + g*0.587 + b*0.114) > 150 ? '#000' : '#fff';
+}
+
+function updateProfileButton(profile) {
+    console.log('updateProfileButton called with:', profile);
+    if (!profile) { console.log('No profile, returning'); return; }
+    const btn = document.getElementById('profile-btn');
+    const img = document.getElementById('profile-avatar');
+    const initials = document.getElementById('profile-initials');
+    btn.style.background = profile.color || '#ffffff';
+    btn.style.color = getContrastColor(profile.color || '#ffffff');
+    if (profile.avatar_url) {
+        img.src = profile.avatar_url;
+        img.style.display = 'block';
+        initials.style.display = 'none';
+    } else {
+        img.style.display = 'none';
+        initials.textContent = (profile.username || '?')[0].toUpperCase();
+        initials.style.display = 'block';
+    }
+    console.log('updateProfileButton done');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+
 // auth
 let isSignUp = false;
 
@@ -17,44 +85,148 @@ document.getElementById('auth-toggle').addEventListener('click', () => {
 });
 
 document.getElementById('auth-submit').addEventListener('click', async () => {
-    const email = document.getElementById('auth-email').value;
+    const email = document.getElementById('auth-email').value.trim();
     const password = document.getElementById('auth-password').value;
+    const username = document.getElementById('auth-username').value.trim();
     const errEl = document.getElementById('auth-error');
     errEl.textContent = '';
 
-    const { error } = isSignUp
-        ? await sb.auth.signUp({ email, password })
-        : await sb.auth.signInWithPassword({ email, password });
-
-    if (error) {
-        errEl.textContent = error.message;
+    if (isSignUp) {
+        if (!username) { errEl.textContent = 'Please choose a username.'; return; }
+        const { data, error } = await sb.auth.signUp({ email, password });
+        if (error) { errEl.textContent = error.message; return; }
+        console.log('User signed up:', data.user.id);
+        const { error: profileError } = await sb.from('profiles').insert({ id: data.user.id, username, color: '#ffffff' });
+        if (profileError) { 
+            console.error('Profile creation error:', profileError);
+            errEl.textContent = 'Account created but profile setup failed. Please try signing in.'; 
+            return; 
+        }
+        console.log('Profile created successfully');
+    } else {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) { errEl.textContent = error.message; return; }
     }
 });
 
-document.getElementById('logout-btn').addEventListener('click', () => {
-    sb.auth.signOut();
+document.getElementById('logout-btn').addEventListener('click', async () => {
+    document.getElementById('profile-modal').style.display = 'none';
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+    await sb.auth.signOut();
 });
 
-let tracker = null;
+function openProfileModal() {
+    document.getElementById('profile-modal').style.display = 'flex';
+    document.getElementById('profile-username').value = currentProfile?.username || '';
+    document.getElementById('profile-color').value = currentProfile?.color || '#ffffff';
+    document.getElementById('profile-status').textContent = '';
 
-sb.auth.onAuthStateChange(async (event, session) => {
-    if (session) {
-        document.getElementById('auth-screen').style.display = 'none';
-        document.getElementById('app-screen').style.display = 'flex';
-        if (!tracker) {
-            tracker = new MapTracker(session.user.id);
+    const modalImg = document.getElementById('modal-avatar-img');
+    const modalInitials = document.getElementById('modal-avatar-initials');
+    if (currentProfile?.avatar_url) {
+        modalImg.src = currentProfile.avatar_url;
+        modalImg.style.display = 'block';
+        modalInitials.style.display = 'none';
+    } else {
+        modalImg.style.display = 'none';
+        modalInitials.textContent = (currentProfile?.username || '?')[0].toUpperCase();
+        modalInitials.style.display = 'block';
+    }
+
+    const note = document.getElementById('username-note');
+    const usernameInput = document.getElementById('profile-username');
+    const saveUsernameBtn = document.getElementById('save-username');
+    if (currentProfile?.username_changed_at) {
+        const next = new Date(new Date(currentProfile.username_changed_at).getTime() + 30*24*60*60*1000);
+        const daysLeft = Math.ceil((next - new Date()) / (1000*60*60*24));
+        if (daysLeft > 0) {
+            note.textContent = `Can change again in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}.`;
+            usernameInput.disabled = true;
+            saveUsernameBtn.disabled = true;
+        } else {
+            note.textContent = '';
+            usernameInput.disabled = false;
+            saveUsernameBtn.disabled = false;
         }
     } else {
-        document.getElementById('auth-screen').style.display = 'flex';
-        document.getElementById('app-screen').style.display = 'none';
-        tracker = null;
+        note.textContent = '';
+        usernameInput.disabled = false;
+        saveUsernameBtn.disabled = false;
     }
+}
+
+document.getElementById('profile-btn').addEventListener('click', openProfileModal);
+
+document.getElementById('close-profile').addEventListener('click', () => {
+    document.getElementById('profile-modal').style.display = 'none';
+});
+
+document.getElementById('profile-modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('profile-modal'))
+        document.getElementById('profile-modal').style.display = 'none';
+});
+
+document.getElementById('save-username').addEventListener('click', async () => {
+    const newUsername = document.getElementById('profile-username').value.trim();
+    const statusEl = document.getElementById('profile-status');
+    if (!newUsername) { statusEl.textContent = 'Username cannot be empty.'; return; }
+    const { data: sessionData } = await sb.auth.getSession();
+    const { error } = await sb.from('profiles').update({
+        username: newUsername,
+        username_changed_at: new Date().toISOString()
+    }).eq('id', sessionData.session.user.id);
+    if (error) {
+        statusEl.textContent = error.message.includes('unique') ? 'Username already taken.' : error.message;
+    } else {
+        currentProfile.username = newUsername;
+        currentProfile.username_changed_at = new Date().toISOString();
+        statusEl.textContent = 'Username saved!';
+        updateProfileButton(currentProfile);
+        openProfileModal();
+    }
+});
+
+document.getElementById('save-color').addEventListener('click', async () => {
+    const newColor = document.getElementById('profile-color').value;
+    const statusEl = document.getElementById('profile-status');
+    const { data: sessionData } = await sb.auth.getSession();
+    const { error } = await sb.from('profiles').update({ color: newColor }).eq('id', sessionData.session.user.id);
+    if (error) { statusEl.textContent = error.message; return; }
+    currentProfile.color = newColor;
+    statusEl.textContent = 'Colour saved!';
+    updateProfileButton(currentProfile);
+    if (tracker) tracker.setColor(newColor);
+});
+
+document.getElementById('avatar-upload').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const statusEl = document.getElementById('profile-status');
+    statusEl.textContent = 'Uploading...';
+    const { data: sessionData } = await sb.auth.getSession();
+    const userId = sessionData.session.user.id;
+    const ext = file.name.split('.').pop();
+    const path = `${userId}/avatar.${ext}`;
+    const { error: uploadError } = await sb.storage.from('avatars').upload(path, file, { upsert: true });
+    if (uploadError) { statusEl.textContent = uploadError.message; return; }
+    const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
+    const avatarUrl = urlData.publicUrl + '?t=' + Date.now();
+    const { error: updateError } = await sb.from('profiles').update({ avatar_url: avatarUrl }).eq('id', userId);
+    if (updateError) { statusEl.textContent = updateError.message; return; }
+    currentProfile.avatar_url = avatarUrl;
+    statusEl.textContent = 'Photo updated!';
+    updateProfileButton(currentProfile);
+    openProfileModal();
+});
+
 });
 
 // map
 class MapTracker {
-    constructor(userId) {
+    constructor(userId, color) {
         this.userId = userId;
+        this.color = color || '#ffffff';
         this.map = null;
         this.watchId = null;
         this.currentMarker = null;
@@ -65,27 +237,36 @@ class MapTracker {
     }
 
     async init() {
+        await new Promise(resolve => setTimeout(resolve, 100));
         this.setupMap();
         await this.loadLocationsFromDB();
         this.startTracking();
     }
 
-    setupMap() {
-        this.map = L.map('map').setView([20, 0], 2);
-        
-        // gray base
-        const baseLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            maxZoom: 17
-        }).addTo(this.map);
-        baseLayer.getContainer().style.filter = 'grayscale(0.85) brightness(0.95)';
-        
-        // color overlay
-        L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            maxZoom: 17
-        }).addTo(this.map);
+    setColor(color) {
+        this.color = color;
+        this.updateMask();
+    }
 
-        this.createMaskOverlay();
-        this.map.on('moveend zoomend', () => this.updateMask());
+    setupMap() {
+        try {
+            this.map = L.map('map').setView([20, 0], 2);
+            
+            L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                maxZoom: 17
+            }).addTo(this.map);
+
+            this.createMaskOverlay();
+            this.map.on('moveend zoomend', () => this.updateMask());
+            
+            setTimeout(() => {
+                if (this.map) {
+                    this.map.invalidateSize();
+                }
+            }, 300);
+        } catch (e) {
+            console.error('Map setup error:', e);
+        }
     }
 
     createMaskOverlay() {
@@ -95,13 +276,9 @@ class MapTracker {
         this.maskCanvas.style.cssText = `
             position: absolute; top: 0; left: 0;
             pointer-events: none; z-index: 400;
+            width: 100%; height: 100%;
         `;
         mapContainer.appendChild(this.maskCanvas);
-
-        setTimeout(() => {
-            const panes = document.querySelectorAll('.leaflet-tile-pane');
-            if (panes[1]) panes[1].style.mixBlendMode = 'screen';
-        }, 100);
     }
 
     updateMask() {
@@ -241,3 +418,25 @@ class MapTracker {
         document.getElementById('coords').textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
     }
 }
+
+sb.auth.onAuthStateChange(async (event, session) => {
+    if (session) {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'flex';
+        currentProfile = await loadProfile(session.user.id);
+        if (!currentProfile) {
+            console.error('Failed to load profile, using defaults');
+            currentProfile = { id: session.user.id, username: 'User', color: '#ffffff' };
+        }
+        if (!tracker) {
+            tracker = new MapTracker(session.user.id, currentProfile?.color || '#ffffff');
+        }
+        updateProfileButton(currentProfile);
+    } else {
+        document.getElementById('auth-screen').style.display = 'flex';
+        document.getElementById('app-screen').style.display = 'none';
+        document.getElementById('profile-modal').style.display = 'none';
+        tracker = null;
+        currentProfile = null;
+    }
+});

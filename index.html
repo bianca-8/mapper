@@ -10,10 +10,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <header>
-        <h1>Mapper</h1>
-        <p>Explore the world and uncover the map</p>
-    </header>
 
     <!-- auth (logged out) -->
     <div id="auth-screen">
@@ -21,22 +17,66 @@
             <h2 id="auth-title">Sign In</h2>
             <input type="email" id="auth-email" placeholder="Email" />
             <input type="password" id="auth-password" placeholder="Password" />
+            <input type="text" id="auth-username" placeholder="Username" style="display:none" />
             <button id="auth-submit">Sign In</button>
             <button id="auth-toggle">No account? Sign Up</button>
             <p id="auth-error"></p>
         </div>
     </div>
 
-    <!-- logged in -->
-    <div id="app-screen" style="display:none; flex-direction:column; flex:1;">
+    <!-- main -->
+    <div id="app-screen" style="display:none">
+        <header>
+            <h1>Mapper</h1>
+            <p>Explore the world and uncover the map</p>
+            <button id="profile-btn" title="Profile">
+                <img id="profile-avatar" src="" alt="" style="display:none" />
+                <span id="profile-initials"></span>
+            </button>
+        </header>
+
         <div class="container">
             <div id="map"></div>
             <div class="info">
-                <p>
-                    Current Location: <span id="coords">Not found</span>
-                    <button id="logout-btn">Log Out</button>
-                </p>
+                <p>Current Location: <span id="coords">Not found</span></p>
             </div>
+        </div>
+    </div>
+
+    <!-- profile -->
+    <div id="profile-modal" style="display:none">
+        <div id="profile-panel">
+            <button id="close-profile">✕</button>
+            <div id="avatar-section">
+                <div id="avatar-preview">
+                    <img id="modal-avatar-img" src="" alt="" style="display:none" />
+                    <span id="modal-avatar-initials"></span>
+                </div>
+                <label id="avatar-upload-label">
+                    Change Photo
+                    <input type="file" id="avatar-upload" accept="image/*" style="display:none" />
+                </label>
+            </div>
+
+            <div class="profile-field">
+                <label>Username</label>
+                <div class="field-row">
+                    <input type="text" id="profile-username" />
+                    <button id="save-username">Save</button>
+                </div>
+                <p id="username-note"></p>
+            </div>
+
+            <div class="profile-field">
+                <label>Circle Colour</label>
+                <div class="field-row">
+                    <input type="color" id="profile-color" />
+                    <button id="save-color">Save</button>
+                </div>
+            </div>
+
+            <button id="logout-btn">Log Out</button>
+            <p id="profile-status"></p>
         </div>
     </div>
 
