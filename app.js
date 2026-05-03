@@ -6,12 +6,9 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let tracker = null;
 let currentProfile = null;
 
-// ── profile ────
+// profile
 async function loadProfile(userId) {
-    console.log('loadProfile called with userId:', userId);
     try {
-        console.log('Querying profiles table...');
-        
         const timeoutPromise = new Promise((_, reject) => 
             setTimeout(() => reject(new Error('Profile query timeout')), 3000)
         );
@@ -19,24 +16,19 @@ async function loadProfile(userId) {
         const queryPromise = sb.from('profiles').select('*').eq('id', userId).single();
         const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
         
-        console.log('Query complete. Error:', error, 'Data:', data);
         if (error) {
-            console.log('Profile not found, creating default profile');
             const { error: createError } = await sb.from('profiles').insert({ 
                 id: userId, 
                 username: 'User', 
                 color: '#ffffff' 
             });
             if (createError) {
-                console.error('Failed to create profile:', createError);
                 return null;
             }
             return { id: userId, username: 'User', color: '#ffffff' };
         }
-        console.log('loadProfile result:', data);
         return data;
     } catch (e) {
-        console.error('loadProfile error:', e.message);
         return null;
     }
 }
@@ -50,8 +42,7 @@ function getContrastColor(hex) {
 }
 
 function updateProfileButton(profile) {
-    console.log('updateProfileButton called with:', profile);
-    if (!profile) { console.log('No profile, returning'); return; }
+    if (!profile) return;
     const btn = document.getElementById('profile-btn');
     const img = document.getElementById('profile-avatar');
     const initials = document.getElementById('profile-initials');
@@ -66,7 +57,6 @@ function updateProfileButton(profile) {
         initials.textContent = (profile.username || '?')[0].toUpperCase();
         initials.style.display = 'block';
     }
-    console.log('updateProfileButton done');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -81,6 +71,7 @@ document.getElementById('auth-toggle').addEventListener('click', () => {
     document.getElementById('auth-toggle').textContent = isSignUp
         ? 'Have an account? Sign In'
         : 'No account? Sign Up';
+    document.getElementById('auth-username').style.display = isSignUp ? 'block' : 'none';
     document.getElementById('auth-error').textContent = '';
 });
 
@@ -95,14 +86,11 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
         if (!username) { errEl.textContent = 'Please choose a username.'; return; }
         const { data, error } = await sb.auth.signUp({ email, password });
         if (error) { errEl.textContent = error.message; return; }
-        console.log('User signed up:', data.user.id);
         const { error: profileError } = await sb.from('profiles').insert({ id: data.user.id, username, color: '#ffffff' });
         if (profileError) { 
-            console.error('Profile creation error:', profileError);
             errEl.textContent = 'Account created but profile setup failed. Please try signing in.'; 
             return; 
         }
-        console.log('Profile created successfully');
     } else {
         const { error } = await sb.auth.signInWithPassword({ email, password });
         if (error) { errEl.textContent = error.message; return; }
@@ -265,7 +253,6 @@ class MapTracker {
                 }
             }, 300);
         } catch (e) {
-            console.error('Map setup error:', e);
         }
     }
 
@@ -317,7 +304,6 @@ class MapTracker {
             .eq('user_id', this.userId);
 
         if (error) {
-            console.error('Error loading locations:', error.message);
             return;
         }
 
@@ -335,8 +321,6 @@ class MapTracker {
         const { error } = await sb
             .from('visited_locations')
             .insert({ user_id: this.userId, lat, lng });
-
-        if (error) console.error('Error saving location:', error.message);
     }
     
     addVisitedLocation(lat, lon) {
@@ -358,7 +342,7 @@ class MapTracker {
     startTracking() {
         navigator.geolocation.getCurrentPosition(
             (position) => this.centerMapOnLocation(position.coords),
-            (error) => console.error('Geolocation error:', error.message)
+            (error) => {}
         );
 
         this.watchId = navigator.geolocation.watchPosition(
@@ -368,7 +352,7 @@ class MapTracker {
                 this.updateDisplay(latitude, longitude);
                 this.updateCurrentMarker(latitude, longitude);
             },
-            (error) => console.error('Watch error:', error.message),
+            (error) => {},
             { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
     }
@@ -423,20 +407,30 @@ sb.auth.onAuthStateChange(async (event, session) => {
     if (session) {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app-screen').style.display = 'flex';
+        
+        // get rid of old tracker
+        if (tracker && tracker.map) {
+            tracker.map.remove();
+            tracker = null;
+        }
+        
         currentProfile = await loadProfile(session.user.id);
         if (!currentProfile) {
-            console.error('Failed to load profile, using defaults');
             currentProfile = { id: session.user.id, username: 'User', color: '#ffffff' };
         }
-        if (!tracker) {
-            tracker = new MapTracker(session.user.id, currentProfile?.color || '#ffffff');
-        }
+        tracker = new MapTracker(session.user.id, currentProfile?.color || '#ffffff');
         updateProfileButton(currentProfile);
     } else {
         document.getElementById('auth-screen').style.display = 'flex';
         document.getElementById('app-screen').style.display = 'none';
         document.getElementById('profile-modal').style.display = 'none';
-        tracker = null;
+        
+        // get rid of tracker on logout
+        if (tracker && tracker.map) {
+            tracker.map.remove();
+            tracker = null;
+        }
+        
         currentProfile = null;
     }
 });
