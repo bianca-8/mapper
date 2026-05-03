@@ -147,6 +147,29 @@ class MapTracker {
                 opacity: 1,
                 fillOpacity: 0.8
             }).addTo(this.map);
+            
+            // DEBUG
+            let isDragging = false;
+            this.currentMarker.on('mousedown', (e) => {
+                if (e.originalEvent.shiftKey) {
+                    isDragging = true;
+                    L.DomEvent.preventDefault(e);
+                }
+            });
+            
+            this.map.on('mousemove', (e) => {
+                if (isDragging) {
+                    const latLng = e.latlng;
+                    this.currentMarker.setLatLng(latLng);
+                    this.updateDisplay(latLng.lat, latLng.lng);
+                    this.addVisitedLocation(latLng.lat, latLng.lng);
+                }
+            });
+            
+            this.map.on('mouseup', () => {
+                isDragging = false;
+            });
+            // END DEBUG
         }
     }
 
@@ -156,3 +179,6 @@ class MapTracker {
 }
 
 document.addEventListener('DOMContentLoaded', () => new MapTracker());
+
+
+ 
