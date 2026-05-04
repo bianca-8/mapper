@@ -1,0 +1,14 @@
+Add
+- choosing username should be optional
+- popup closing when not clicked
+- friending
+- fix colours overlapping circles to be transparent
+- display friends' circles
+- display everyon's circles
+- add notes at a place
+- test actual location and moving
+- add login with id
+- fix incognito image
+- reset password, double auth
+- host on website
+- make into app

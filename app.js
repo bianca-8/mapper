@@ -13,7 +13,11 @@ async function loadProfile(userId) {
             setTimeout(() => reject(new Error('Profile query timeout')), 3000)
         );
         
-        const queryPromise = sb.from('profiles').select('*').eq('id', userId).single();
+        const queryPromise = (async () => {
+            const result = await sb.from('profiles').select('*').eq('id', userId).single();
+            return result;
+        })();
+        
         const { data, error } = await Promise.race([queryPromise, timeoutPromise]);
         
         if (error) {
@@ -70,11 +74,15 @@ function updateProfileButton(profile) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    await sb.auth.signOut();
+    
     document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'flex';
     
     tracker = new MapTracker(null, '#ffffff');
+    currentProfile = null;
+    updateProfileButton(null);
 
 // auth
 let isSignUp = false;
@@ -115,6 +123,10 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
 document.getElementById('logout-btn').addEventListener('click', async () => {
     document.getElementById('profile-modal').style.display = 'none';
     document.getElementById('auth-screen').style.display = 'none';
+    if (tracker) {
+        tracker.visitedLocations = [];
+        tracker.updateMask();
+    }
     await sb.auth.signOut();
 });
 
@@ -308,9 +320,9 @@ class MapTracker {
             ctx.fill();
         }
 
+        ctx.globalCompositeOperation = 'source-over';
+        
         if (this.userId) {
-            ctx.globalCompositeOperation = 'source-over';
-            
             const hexToRgba = (hex) => {
                 const r = parseInt(hex.slice(1, 3), 16);
                 const g = parseInt(hex.slice(3, 5), 16);
@@ -319,7 +331,7 @@ class MapTracker {
             };
             
             ctx.fillStyle = hexToRgba(this.color);
-
+            
             for (const location of this.visitedLocations) {
                 const point = this.map.latLngToContainerPoint(location);
                 const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
@@ -443,14 +455,13 @@ class MapTracker {
 }
 
 sb.auth.onAuthStateChange(async (event, session) => {
-    if (session) {
+    if (event === 'SIGNED_IN' && session) {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app-screen').style.display = 'flex';
         
         if (tracker) {
             tracker.userId = session.user.id;
             tracker.visitedLocations = [];
-            await tracker.loadLocationsFromDB();
         }
         
         currentProfile = await loadProfile(session.user.id);
@@ -459,18 +470,19 @@ sb.auth.onAuthStateChange(async (event, session) => {
         }
         
         if (tracker) {
+            await tracker.loadLocationsFromDB();
             tracker.setColor(currentProfile?.color || '#ffffff');
         }
         updateProfileButton(currentProfile);
-    } else {
+    } else if (event === 'SIGNED_OUT') {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('profile-modal').style.display = 'none';
         
         if (tracker) {
             tracker.userId = null;
             tracker.visitedLocations = [];
-            tracker.updateMask();
             tracker.setColor('#ffffff');
+            tracker.updateMask();
         }
         
         currentProfile = null;
