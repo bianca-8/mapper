@@ -168,14 +168,38 @@ document.getElementById('close-profile').addEventListener('click', () => {
     document.getElementById('profile-modal').style.display = 'none';
 });
 
+let profileModalClickPos = null;
+document.getElementById('profile-modal').addEventListener('mousedown', (e) => {
+    profileModalClickPos = { x: e.clientX, y: e.clientY };
+});
 document.getElementById('profile-modal').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('profile-modal'))
-        document.getElementById('profile-modal').style.display = 'none';
+    if (e.target === document.getElementById('profile-modal')) {
+        const endPos = { x: e.clientX, y: e.clientY };
+        const distance = Math.sqrt(
+            Math.pow(endPos.x - profileModalClickPos.x, 2) + 
+            Math.pow(endPos.y - profileModalClickPos.y, 2)
+        );
+        if (distance < 5) {
+            document.getElementById('profile-modal').style.display = 'none';
+        }
+    }
 });
 
+let authScreenClickPos = null;
+document.getElementById('auth-screen').addEventListener('mousedown', (e) => {
+    authScreenClickPos = { x: e.clientX, y: e.clientY };
+});
 document.getElementById('auth-screen').addEventListener('click', (e) => {
-    if (e.target === document.getElementById('auth-screen'))
-        document.getElementById('auth-screen').style.display = 'none';
+    if (e.target === document.getElementById('auth-screen')) {
+        const endPos = { x: e.clientX, y: e.clientY };
+        const distance = Math.sqrt(
+            Math.pow(endPos.x - authScreenClickPos.x, 2) + 
+            Math.pow(endPos.y - authScreenClickPos.y, 2)
+        );
+        if (distance < 5) {
+            document.getElementById('auth-screen').style.display = 'none';
+        }
+    }
 });
 
 document.getElementById('save-username').addEventListener('click', async () => {
@@ -289,6 +313,8 @@ class MapTracker {
             width: 100%; height: 100%;
         `;
         mapContainer.appendChild(this.maskCanvas);
+        
+        this.circleCanvas = document.createElement('canvas');
     }
 
     updateMask() {
@@ -297,10 +323,12 @@ class MapTracker {
         const rect = mapContainer.getBoundingClientRect();
         this.maskCanvas.width = rect.width;
         this.maskCanvas.height = rect.height;
+        this.circleCanvas.width = rect.width;
+        this.circleCanvas.height = rect.height;
 
         const ctx = this.maskCanvas.getContext('2d');
+        const circleCtx = this.circleCanvas.getContext('2d');
 
-        // circle at visited location
         ctx.clearRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
@@ -320,27 +348,33 @@ class MapTracker {
             ctx.fill();
         }
 
-        ctx.globalCompositeOperation = 'source-over';
-        
         if (this.userId) {
-            const hexToRgba = (hex) => {
+            circleCtx.clearRect(0, 0, this.circleCanvas.width, this.circleCanvas.height);
+            
+            const hexToRgb = (hex) => {
                 const r = parseInt(hex.slice(1, 3), 16);
                 const g = parseInt(hex.slice(3, 5), 16);
                 const b = parseInt(hex.slice(5, 7), 16);
-                return `rgba(${r}, ${g}, ${b}, 0.4)`;
+                return { r, g, b };
             };
             
-            ctx.fillStyle = hexToRgba(this.color);
+            const rgb = hexToRgb(this.color);
+            circleCtx.fillStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
             
             for (const location of this.visitedLocations) {
                 const point = this.map.latLngToContainerPoint(location);
                 const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
                 const point2 = this.map.latLngToContainerPoint(latLng2);
                 const pixelRadius = Math.abs(point2.y - point.y);
-                ctx.beginPath();
-                ctx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
-                ctx.fill();
+                circleCtx.beginPath();
+                circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
+                circleCtx.fill();
             }
+            
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 0.4;
+            ctx.drawImage(this.circleCanvas, 0, 0);
+            ctx.globalAlpha = 1.0;
         }
     }
 

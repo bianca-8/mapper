@@ -1,13 +1,12 @@
 Add
-- choosing username should be optional
-- popup closing when not clicked
+- choosing username should be optional - it automaticlaly makes one for them if they don't choose - OR MAKE IT SO THAT YOU MUST CHOOSE BUT SAY CAN CHANGE LATER
 - friending
 - fix colours overlapping circles to be transparent
 - display friends' circles
-- display everyon's circles
+- display everyone's circles
 - add notes at a place
 - test actual location and moving
-- add login with id
+- add login with username
 - fix incognito image
 - reset password, double auth
 - host on website
