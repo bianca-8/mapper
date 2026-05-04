@@ -44,7 +44,14 @@ function getContrastColor(hex) {
 function updateProfileButton(profile) {
     const btn = document.getElementById('profile-btn');
     if (!profile) {
-        btn.style.display = 'none';
+        btn.style.display = 'block';
+        btn.style.background = '#808080';
+        btn.style.color = '#fff';
+        const img = document.getElementById('profile-avatar');
+        const initials = document.getElementById('profile-initials');
+        img.style.display = 'none';
+        initials.textContent = '?';
+        initials.style.display = 'block';
         return;
     }
     btn.style.display = 'block';
@@ -64,7 +71,7 @@ function updateProfileButton(profile) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('auth-screen').style.display = 'none';
     document.getElementById('app-screen').style.display = 'flex';
     
     tracker = new MapTracker(null, '#ffffff');
@@ -107,8 +114,7 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
 
 document.getElementById('logout-btn').addEventListener('click', async () => {
     document.getElementById('profile-modal').style.display = 'none';
-    document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('app-screen').style.display = 'flex';
+    document.getElementById('auth-screen').style.display = 'none';
     await sb.auth.signOut();
 });
 
@@ -152,7 +158,13 @@ function openProfileModal() {
     }
 }
 
-document.getElementById('profile-btn').addEventListener('click', openProfileModal);
+document.getElementById('profile-btn').addEventListener('click', () => {
+    if (currentProfile) {
+        openProfileModal();
+    } else {
+        document.getElementById('auth-screen').style.display = 'flex';
+    }
+});
 
 document.getElementById('close-profile').addEventListener('click', () => {
     document.getElementById('profile-modal').style.display = 'none';
@@ -458,8 +470,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
         }
         updateProfileButton(currentProfile);
     } else {
-        document.getElementById('auth-screen').style.display = 'flex';
-        document.getElementById('app-screen').style.display = 'flex';
+        document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('profile-modal').style.display = 'none';
         
         if (tracker) {
@@ -468,6 +479,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
         }
         
         currentProfile = null;
+        updateProfileButton(null);
     }
 });
 
