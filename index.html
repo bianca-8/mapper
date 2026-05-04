@@ -27,6 +27,7 @@
     <!-- main -->
     <div id="app-screen" style="display:none">
         <header>
+            <button id="add-friend-btn">Add Friend</button>
             <h1>Mapper</h1>
             <p>Explore the world and uncover the map</p>
             <button id="profile-btn" title="Profile">
@@ -77,6 +78,20 @@
 
             <button id="logout-btn">Log Out</button>
             <p id="profile-status"></p>
+        </div>
+    </div>
+
+    <!-- add friend -->
+    <div id="add-friend-modal" style="display:none">
+        <div id="add-friend-panel">
+            <button id="close-add-friend">✕</button>
+            <h2>Friends</h2>
+            <div class="friend-field">
+                <label>Username</label>
+                <input type="text" id="friend-username" placeholder="Enter friend's username" />
+            </div>
+            <button id="send-friend-request">Send Request</button>
+            <p id="friend-status"></p>
         </div>
     </div>
 

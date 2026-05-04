@@ -168,6 +168,16 @@ document.getElementById('close-profile').addEventListener('click', () => {
     document.getElementById('profile-modal').style.display = 'none';
 });
 
+document.getElementById('add-friend-btn').addEventListener('click', () => {
+    document.getElementById('add-friend-modal').style.display = 'flex';
+    document.getElementById('friend-username').value = '';
+    document.getElementById('friend-status').textContent = '';
+});
+
+document.getElementById('close-add-friend').addEventListener('click', () => {
+    document.getElementById('add-friend-modal').style.display = 'none';
+});
+
 let profileModalClickPos = null;
 document.getElementById('profile-modal').addEventListener('mousedown', (e) => {
     profileModalClickPos = { x: e.clientX, y: e.clientY };
@@ -181,6 +191,23 @@ document.getElementById('profile-modal').addEventListener('click', (e) => {
         );
         if (distance < 5) {
             document.getElementById('profile-modal').style.display = 'none';
+        }
+    }
+});
+
+let addFriendModalClickPos = null;
+document.getElementById('add-friend-modal').addEventListener('mousedown', (e) => {
+    addFriendModalClickPos = { x: e.clientX, y: e.clientY };
+});
+document.getElementById('add-friend-modal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('add-friend-modal')) {
+        const endPos = { x: e.clientX, y: e.clientY };
+        const distance = Math.sqrt(
+            Math.pow(endPos.x - addFriendModalClickPos.x, 2) + 
+            Math.pow(endPos.y - addFriendModalClickPos.y, 2)
+        );
+        if (distance < 5) {
+            document.getElementById('add-friend-modal').style.display = 'none';
         }
     }
 });
@@ -508,9 +535,12 @@ sb.auth.onAuthStateChange(async (event, session) => {
             tracker.setColor(currentProfile?.color || '#ffffff');
         }
         updateProfileButton(currentProfile);
+        document.getElementById('add-friend-btn').style.display = 'block';
     } else if (event === 'SIGNED_OUT') {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('profile-modal').style.display = 'none';
+        document.getElementById('add-friend-modal').style.display = 'none';
+        document.getElementById('add-friend-btn').style.display = 'none';
         
         if (tracker) {
             tracker.userId = null;
@@ -524,3 +554,4 @@ sb.auth.onAuthStateChange(async (event, session) => {
     }
 });
 
+ 
