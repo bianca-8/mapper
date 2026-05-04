@@ -42,8 +42,12 @@ function getContrastColor(hex) {
 }
 
 function updateProfileButton(profile) {
-    if (!profile) return;
     const btn = document.getElementById('profile-btn');
+    if (!profile) {
+        btn.style.display = 'none';
+        return;
+    }
+    btn.style.display = 'block';
     const img = document.getElementById('profile-avatar');
     const initials = document.getElementById('profile-initials');
     btn.style.background = profile.color || '#ffffff';
@@ -60,6 +64,10 @@ function updateProfileButton(profile) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'flex';
+    
+    tracker = new MapTracker(null, '#ffffff');
 
 // auth
 let isSignUp = false;
@@ -100,7 +108,7 @@ document.getElementById('auth-submit').addEventListener('click', async () => {
 document.getElementById('logout-btn').addEventListener('click', async () => {
     document.getElementById('profile-modal').style.display = 'none';
     document.getElementById('auth-screen').style.display = 'flex';
-    document.getElementById('app-screen').style.display = 'none';
+    document.getElementById('app-screen').style.display = 'flex';
     await sb.auth.signOut();
 });
 
@@ -284,6 +292,7 @@ class MapTracker {
 
         ctx.globalCompositeOperation = 'destination-out';
         ctx.fillStyle = 'rgba(0, 0, 0, 1)';
+        
         const radiusM = 500; // circle radius (meters)
 
         for (const location of this.visitedLocations) {
@@ -295,9 +304,34 @@ class MapTracker {
             ctx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
             ctx.fill();
         }
+
+        if (this.userId) {
+            ctx.globalCompositeOperation = 'source-over';
+            
+            const hexToRgba = (hex) => {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, 0.4)`;
+            };
+            
+            ctx.fillStyle = hexToRgba(this.color);
+
+            for (const location of this.visitedLocations) {
+                const point = this.map.latLngToContainerPoint(location);
+                const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                const point2 = this.map.latLngToContainerPoint(latLng2);
+                const pixelRadius = Math.abs(point2.y - point.y);
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
     }
 
     async loadLocationsFromDB() {
+        if (!this.userId) return;
+        
         const { data, error } = await sb
             .from('visited_locations')
             .select('lat, lng')
@@ -314,6 +348,8 @@ class MapTracker {
     }
 
     async saveLocationToDB(lat, lng) {
+        if (!this.userId) return;
+        
         const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
         if (this.pendingSave.has(key)) return;
         this.pendingSave.add(key);
@@ -408,29 +444,30 @@ sb.auth.onAuthStateChange(async (event, session) => {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app-screen').style.display = 'flex';
         
-        // get rid of old tracker
-        if (tracker && tracker.map) {
-            tracker.map.remove();
-            tracker = null;
+        if (tracker) {
+            tracker.userId = session.user.id;
         }
         
         currentProfile = await loadProfile(session.user.id);
         if (!currentProfile) {
             currentProfile = { id: session.user.id, username: 'User', color: '#ffffff' };
         }
-        tracker = new MapTracker(session.user.id, currentProfile?.color || '#ffffff');
+        
+        if (tracker) {
+            tracker.setColor(currentProfile?.color || '#ffffff');
+        }
         updateProfileButton(currentProfile);
     } else {
         document.getElementById('auth-screen').style.display = 'flex';
-        document.getElementById('app-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'flex';
         document.getElementById('profile-modal').style.display = 'none';
         
-        // get rid of tracker on logout
-        if (tracker && tracker.map) {
-            tracker.map.remove();
-            tracker = null;
+        if (tracker) {
+            tracker.userId = null;
+            tracker.setColor('#ffffff');
         }
         
         currentProfile = null;
     }
 });
+
