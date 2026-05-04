@@ -139,23 +139,9 @@ function openProfileModal() {
     const note = document.getElementById('username-note');
     const usernameInput = document.getElementById('profile-username');
     const saveUsernameBtn = document.getElementById('save-username');
-    if (currentProfile?.username_changed_at) {
-        const next = new Date(new Date(currentProfile.username_changed_at).getTime() + 30*24*60*60*1000);
-        const daysLeft = Math.ceil((next - new Date()) / (1000*60*60*24));
-        if (daysLeft > 0) {
-            note.textContent = `Can change again in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}.`;
-            usernameInput.disabled = true;
-            saveUsernameBtn.disabled = true;
-        } else {
-            note.textContent = '';
-            usernameInput.disabled = false;
-            saveUsernameBtn.disabled = false;
-        }
-    } else {
-        note.textContent = '';
-        usernameInput.disabled = false;
-        saveUsernameBtn.disabled = false;
-    }
+    note.textContent = '';
+    usernameInput.disabled = false;
+    saveUsernameBtn.disabled = false;
 }
 
 document.getElementById('profile-btn').addEventListener('click', () => {
@@ -173,6 +159,11 @@ document.getElementById('close-profile').addEventListener('click', () => {
 document.getElementById('profile-modal').addEventListener('click', (e) => {
     if (e.target === document.getElementById('profile-modal'))
         document.getElementById('profile-modal').style.display = 'none';
+});
+
+document.getElementById('auth-screen').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('auth-screen'))
+        document.getElementById('auth-screen').style.display = 'none';
 });
 
 document.getElementById('save-username').addEventListener('click', async () => {
@@ -458,6 +449,8 @@ sb.auth.onAuthStateChange(async (event, session) => {
         
         if (tracker) {
             tracker.userId = session.user.id;
+            tracker.visitedLocations = [];
+            await tracker.loadLocationsFromDB();
         }
         
         currentProfile = await loadProfile(session.user.id);
@@ -475,6 +468,8 @@ sb.auth.onAuthStateChange(async (event, session) => {
         
         if (tracker) {
             tracker.userId = null;
+            tracker.visitedLocations = [];
+            tracker.updateMask();
             tracker.setColor('#ffffff');
         }
         
