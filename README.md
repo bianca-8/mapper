@@ -10,6 +10,8 @@ Eventually, I want to make this into an app to be downloaded on a phone.
 
 If you have any suggestions for what to add feel free to tell me :D
 
+[![Youtube Video: https://www.youtube.com/watch?v=21XojbM4FUU](https://img.youtube.com/vi/21XojbM4FUU/0.jpg)](https://youtu.be/21XojbM4FUU)
+
 To add:
 - choosing username should be optional - it automatically makes one for them if they don't choose - OR MAKE IT SO THAT YOU MUST CHOOSE BUT SAY CAN CHANGE LATER
 - friending
