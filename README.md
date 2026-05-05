@@ -10,15 +10,23 @@ Eventually, I want to make this into an app to be downloaded on a phone.
 
 If you have any suggestions for what to add feel free to tell me :D
 
-To add:
+*How to use*
+- You must allow your location for it to properly work
+- Uncover the map as you walk around (for now you can also just drag your location dot)
+- Log in to save your locations
+- Choose your profile picture, username and custom color
+- Friend others to see your mutual locations (coming soon)
+
+*To add:*
 - choosing username should be optional - it automatically makes one for them if they don't choose - OR MAKE IT SO THAT YOU MUST CHOOSE BUT SAY CAN CHANGE LATER
 - friending
 - display friends' circles
-- display everyone's circles
+- display everyone's circles - show this if not allowed location
 - add notes at a place
 - test actual location and moving
 - add login with username
 - fix incognito image
 - reset password, double auth
+- make circles bigger/smaller for optimal size for privacy
 - host on website
 - make into app
