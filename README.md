@@ -1,6 +1,6 @@
 Mapper is a map to see where you've gone in the world and where your friends have gone! I've travelled to many places and I came up with this idea similar to an app that allows you to see what your friends are listening to on Spotify, instead this allows you to see where your friends have been. Who knows, maybe you guys travelled to the same place without even knowing!
 
-I'm still working on the friending part, but the rest of the functionality is all there. I'm currently at 13 hours in hackatime.
+I'm still working on the friending part, but the rest of the functionality is all there. I'm currently at 13 hours 51 mins in hackatime.
 
 Moving around might be difficult so if you hold shift + drag your location it will also move the dot and create cirles for where you've been (This is just temporary for testing).
 
