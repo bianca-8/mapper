@@ -138,6 +138,12 @@ function openProfileModal() {
 
     const modalImg = document.getElementById('modal-avatar-img');
     const modalInitials = document.getElementById('modal-avatar-initials');
+    const avatarPreview = document.getElementById('avatar-preview');
+    
+    const userColor = currentProfile?.color || '#9ed3af';
+    avatarPreview.style.background = userColor;
+    avatarPreview.style.color = getContrastColor(userColor);
+    
     if (currentProfile?.avatar_url) {
         modalImg.src = currentProfile.avatar_url;
         modalImg.style.display = 'block';
@@ -168,10 +174,10 @@ document.getElementById('close-profile').addEventListener('click', () => {
     document.getElementById('profile-modal').style.display = 'none';
 });
 
-document.getElementById('add-friend-btn').addEventListener('click', () => {
-    document.getElementById('add-friend-modal').style.display = 'flex';
-    document.getElementById('friend-username').value = '';
-    document.getElementById('friend-status').textContent = '';
+document.getElementById('add-friend-btn').addEventListener('click', async () => {
+    if (currentProfile) {
+        await openFriendsModal();
+    }
 });
 
 document.getElementById('close-add-friend').addEventListener('click', () => {
@@ -259,6 +265,30 @@ document.getElementById('save-color').addEventListener('click', async () => {
     statusEl.textContent = 'Colour saved!';
     updateProfileButton(currentProfile);
     if (tracker) tracker.setColor(newColor);
+});
+
+document.getElementById('send-friend-request').addEventListener('click', async () => {
+    const toUsername = document.getElementById('friend-username').value.trim();
+    const statusEl = document.getElementById('friend-status');
+    
+    if (!toUsername) {
+        statusEl.textContent = 'Please enter a username';
+        return;
+    }
+    
+    const result = await sendFriendRequest(currentProfile.id, toUsername);
+    
+    if (result.error) {
+        statusEl.style.color = '#f44336';
+        statusEl.textContent = result.error;
+    } else {
+        statusEl.style.color = '#4CAF50';
+        statusEl.textContent = 'Request sent!';
+        document.getElementById('friend-username').value = '';
+        setTimeout(() => {
+            openFriendsModal();
+        }, 500);
+    }
 });
 
 document.getElementById('avatar-upload').addEventListener('change', async (e) => {
@@ -515,6 +545,172 @@ class MapTracker {
     }
 }
 
+// friending
+async function sendFriendRequest(fromUserId, toUsername) {
+    try {
+        const { data: recipientData, error: recipientError } = await sb
+            .from('profiles')
+            .select('id')
+            .eq('username', toUsername)
+            .single();
+        
+        if (recipientError || !recipientData) {
+            return { error: 'User not found' };
+        }
+        
+        const toUserId = recipientData.id;
+        
+        if (toUserId === fromUserId) {
+            return { error: 'Cannot send request to yourself' };
+        }
+        
+        const { data: existingRequest } = await sb
+            .from('friend_requests')
+            .select('id')
+            .eq('from_user_id', fromUserId)
+            .eq('to_user_id', toUserId)
+            .eq('status', 'pending')
+            .single();
+        
+        if (existingRequest) {
+            return { error: 'Request already sent to this user' };
+        }
+        
+        const { error } = await sb.from('friend_requests').insert({
+            from_user_id: fromUserId,
+            to_user_id: toUserId,
+            status: 'pending',
+            created_at: new Date().toISOString()
+        });
+        
+        if (error) {
+            return { error: error.message };
+        }
+        
+        return { success: true };
+    } catch (e) {
+        return { error: e.message };
+    }
+}
+
+async function loadFriendRequests(userId) {
+    try {
+        const { data, error } = await sb
+            .from('friend_requests')
+            .select('id, from_user_id, from:from_user_id(username, color)')
+            .eq('to_user_id', userId)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            return [];
+        }
+        
+        return data || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+async function acceptFriendRequest(requestId) {
+    try {
+        const { error } = await sb
+            .from('friend_requests')
+            .update({ status: 'accepted' })
+            .eq('id', requestId);
+        
+        if (error) {
+            return { error: error.message };
+        }
+        
+        return { success: true };
+    } catch (e) {
+        return { error: e.message };
+    }
+}
+
+async function rejectFriendRequest(requestId) {
+    try {
+        const { error } = await sb
+            .from('friend_requests')
+            .update({ status: 'rejected' })
+            .eq('id', requestId);
+        
+        if (error) {
+            return { error: error.message };
+        }
+        
+        return { success: true };
+    } catch (e) {
+        return { error: e.message };
+    }
+}
+
+async function openFriendsModal() {
+    document.getElementById('add-friend-modal').style.display = 'flex';
+    document.getElementById('friend-username').value = '';
+    document.getElementById('friend-status').textContent = '';
+    
+    const requests = await loadFriendRequests(currentProfile.id);
+    const requestsList = document.getElementById('requests-list');
+    const noRequestsMsg = document.getElementById('no-requests-message');
+    
+    requestsList.innerHTML = '';
+    
+    if (requests.length === 0) {
+        noRequestsMsg.style.display = 'block';
+    } else {
+        noRequestsMsg.style.display = 'none';
+        for (const request of requests) {
+            const fromUser = request.from;
+            const requestDiv = document.createElement('div');
+            requestDiv.className = 'friend-request-item';
+            
+            const userInfo = document.createElement('div');
+            userInfo.className = 'friend-request-info';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'friend-request-avatar';
+            avatar.style.background = fromUser.color || '#9ed3af';
+            avatar.style.color = getContrastColor(fromUser.color || '#9ed3af');
+            avatar.textContent = (fromUser.username || '?')[0].toUpperCase();
+            
+            const username = document.createElement('span');
+            username.className = 'friend-request-username';
+            username.textContent = fromUser.username || 'Unknown';
+            
+            userInfo.appendChild(avatar);
+            userInfo.appendChild(username);
+            
+            const buttons = document.createElement('div');
+            buttons.className = 'friend-request-buttons';
+            
+            const acceptBtn = document.createElement('button');
+            acceptBtn.className = 'friend-request-accept';
+            acceptBtn.textContent = '✓ Accept';
+            acceptBtn.addEventListener('click', async () => {
+                await acceptFriendRequest(request.id);
+                openFriendsModal();
+            });
+            
+            const rejectBtn = document.createElement('button');
+            rejectBtn.className = 'friend-request-reject';
+            rejectBtn.textContent = '✕ Reject';
+            rejectBtn.addEventListener('click', async () => {
+                await rejectFriendRequest(request.id);
+                openFriendsModal();
+            });
+            
+            buttons.appendChild(acceptBtn);
+            buttons.appendChild(rejectBtn);
+            
+            requestDiv.appendChild(userInfo);
+            requestDiv.appendChild(buttons);
+            requestsList.appendChild(requestDiv);
+        }
+    }
+}
+
 sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
         document.getElementById('auth-screen').style.display = 'none';
@@ -554,4 +750,3 @@ sb.auth.onAuthStateChange(async (event, session) => {
     }
 });
 
- 

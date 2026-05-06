@@ -17,7 +17,7 @@
             <h2 id="auth-title">Sign In</h2>
             <input type="email" id="auth-email" placeholder="Email" />
             <input type="password" id="auth-password" placeholder="Password" />
-            <input type="text" id="auth-username" placeholder="Username" style="display:none" />
+            <input type="text" id="auth-username" placeholder="Username" class="hidden" />
             <button id="auth-submit">Sign In</button>
             <button id="auth-toggle">No account? Sign Up</button>
             <p id="auth-error"></p>
@@ -25,13 +25,13 @@
     </div>
 
     <!-- main -->
-    <div id="app-screen" style="display:none">
+    <div id="app-screen" class="hidden">
         <header>
-            <button id="add-friend-btn">Add Friend</button>
+            <button id="add-friend-btn">Friends</button>
             <h1>Mapper</h1>
             <p>Explore the world and uncover the map</p>
             <button id="profile-btn" title="Profile">
-                <img id="profile-avatar" src="" alt="" style="display:none" />
+                <img id="profile-avatar" src="" alt="" class="hidden" />
                 <span id="profile-initials"></span>
             </button>
         </header>
@@ -45,17 +45,17 @@
     </div>
 
     <!-- profile -->
-    <div id="profile-modal" style="display:none">
+    <div id="profile-modal" class="hidden">
         <div id="profile-panel">
             <button id="close-profile">✕</button>
             <div id="avatar-section">
                 <div id="avatar-preview">
-                    <img id="modal-avatar-img" src="" alt="" style="display:none" />
+                    <img id="modal-avatar-img" src="" alt="" class="hidden" />
                     <span id="modal-avatar-initials"></span>
                 </div>
                 <label id="avatar-upload-label">
                     Change Photo
-                    <input type="file" id="avatar-upload" accept="image/*" style="display:none" />
+                    <input type="file" id="avatar-upload" accept="image/*" class="hidden" />
                 </label>
             </div>
 
@@ -82,16 +82,26 @@
     </div>
 
     <!-- add friend -->
-    <div id="add-friend-modal" style="display:none">
+    <div id="add-friend-modal" class="hidden">
         <div id="add-friend-panel">
             <button id="close-add-friend">✕</button>
             <h2>Friends</h2>
-            <div class="friend-field">
-                <label>Username</label>
-                <input type="text" id="friend-username" placeholder="Enter friend's username" />
+            
+            <div id="send-request-section">
+                <h3>Send Friend Request</h3>
+                <div class="friend-field">
+                    <label>Username</label>
+                    <input type="text" id="friend-username" placeholder="Enter friend's username" />
+                </div>
+                <button id="send-friend-request">Send Request</button>
+                <p id="friend-status"></p>
             </div>
-            <button id="send-friend-request">Send Request</button>
-            <p id="friend-status"></p>
+            
+            <div id="requests-section">
+                <h3>Friend Requests</h3>
+                <div id="requests-list"></div>
+                <p id="no-requests-message">No pending friend requests</p>
+            </div>
         </div>
     </div>
 

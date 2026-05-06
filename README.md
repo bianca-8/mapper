@@ -24,10 +24,12 @@ If you have any suggestions for what to add feel free to tell me :D
 - timeline of where you were over time
 - heatmap of places you visit most often
 - friending
-- display friends' circles
+- display friends' circles - hover over circles allows you to see their username
 - display everyone's circles - show this if not allowed location
 - add notes at a place
+- share your map - unique link
 - test actual location and moving
+- check default username profile picture is green
 - add login with username
 - fix incognito image
 - reset password, double auth
