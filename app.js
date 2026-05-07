@@ -184,6 +184,32 @@ document.getElementById('close-add-friend').addEventListener('click', () => {
     document.getElementById('add-friend-modal').style.display = 'none';
 });
 
+document.getElementById('tab-add-request').addEventListener('click', () => {
+    switchFriendTab('add-request');
+});
+document.getElementById('tab-requests').addEventListener('click', () => {
+    switchFriendTab('requests');
+});
+document.getElementById('tab-friends-list').addEventListener('click', () => {
+    switchFriendTab('friends-list');
+});
+
+function switchFriendTab(tabName) {
+    document.querySelectorAll('.friend-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.friend-tab-content').forEach(content => content.classList.remove('active'));
+    
+    if (tabName === 'add-request') {
+        document.getElementById('tab-add-request').classList.add('active');
+        document.getElementById('send-request-section').classList.add('active');
+    } else if (tabName === 'requests') {
+        document.getElementById('tab-requests').classList.add('active');
+        document.getElementById('requests-section').classList.add('active');
+    } else if (tabName === 'friends-list') {
+        document.getElementById('tab-friends-list').classList.add('active');
+        document.getElementById('friends-list-section').classList.add('active');
+    }
+}
+
 let profileModalClickPos = null;
 document.getElementById('profile-modal').addEventListener('mousedown', (e) => {
     profileModalClickPos = { x: e.clientX, y: e.clientY };
@@ -612,15 +638,27 @@ async function loadFriendRequests(userId) {
     }
 }
 
-async function acceptFriendRequest(requestId) {
+async function acceptFriendRequest(requestId, fromUserId, toUserId) {
     try {
-        const { error } = await sb
+        const { error: updateError } = await sb
             .from('friend_requests')
             .update({ status: 'accepted' })
             .eq('id', requestId);
         
-        if (error) {
-            return { error: error.message };
+        if (updateError) {
+            return { error: updateError.message };
+        }
+        
+        const user1 = fromUserId < toUserId ? fromUserId : toUserId;
+        const user2 = fromUserId < toUserId ? toUserId : fromUserId;
+        
+        const { error: friendError } = await sb.from('friends').insert({
+            user_id_1: user1,
+            user_id_2: user2
+        });
+        
+        if (friendError) {
+            return { error: friendError.message };
         }
         
         return { success: true };
@@ -643,6 +681,25 @@ async function rejectFriendRequest(requestId) {
         return { success: true };
     } catch (e) {
         return { error: e.message };
+    }
+}
+
+async function loadFriends(userId) {
+    try {
+        const { data, error } = await sb
+            .from('friends')
+            .select('id, user_id_1, user_id_2, friend1:user_id_1(username, color), friend2:user_id_2(username, color)')
+            .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`);
+        
+        if (error) {
+            console.error('Friends load error:', error);
+            return [];
+        }
+        
+        return data || [];
+    } catch (e) {
+        console.error('Friends load exception:', e);
+        return [];
     }
 }
 
@@ -689,7 +746,7 @@ async function openFriendsModal() {
             acceptBtn.className = 'friend-request-accept';
             acceptBtn.textContent = '✓ Accept';
             acceptBtn.addEventListener('click', async () => {
-                await acceptFriendRequest(request.id);
+                await acceptFriendRequest(request.id, request.from_user_id, currentProfile.id);
                 openFriendsModal();
             });
             
@@ -707,6 +764,42 @@ async function openFriendsModal() {
             requestDiv.appendChild(userInfo);
             requestDiv.appendChild(buttons);
             requestsList.appendChild(requestDiv);
+        }
+    }
+    
+    const friends = await loadFriends(currentProfile.id);
+    const friendsList = document.getElementById('friends-list');
+    const noFriendsMsg = document.getElementById('no-friends-message');
+    
+    friendsList.innerHTML = '';
+    
+    if (friends.length === 0) {
+        noFriendsMsg.style.display = 'block';
+    } else {
+        noFriendsMsg.style.display = 'none';
+        for (const friendship of friends) {
+            const friend = friendship.user_id_1 === currentProfile.id ? friendship.friend2 : friendship.friend1;
+            
+            const friendDiv = document.createElement('div');
+            friendDiv.className = 'friend-item';
+            
+            const friendInfo = document.createElement('div');
+            friendInfo.className = 'friend-info';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'friend-avatar';
+            avatar.style.background = friend.color || '#9ed3af';
+            avatar.style.color = getContrastColor(friend.color || '#9ed3af');
+            avatar.textContent = (friend.username || '?')[0].toUpperCase();
+            
+            const friendUsername = document.createElement('span');
+            friendUsername.className = 'friend-username';
+            friendUsername.textContent = friend.username || 'Unknown';
+            
+            friendInfo.appendChild(avatar);
+            friendInfo.appendChild(friendUsername);
+            friendDiv.appendChild(friendInfo);
+            friendsList.appendChild(friendDiv);
         }
     }
 }
@@ -749,4 +842,3 @@ sb.auth.onAuthStateChange(async (event, session) => {
         updateProfileButton(null);
     }
 });
-

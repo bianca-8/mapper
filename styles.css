@@ -360,10 +360,8 @@ button {
     min-height: 1rem;
 }
 
-#send-request-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+#friends-list-section h3 {
+    font-size: 1rem;
 }
 
 #send-request-section h3 {
@@ -388,12 +386,6 @@ button {
     text-align: center;
     color: #999;
     font-style: italic;
-}
-
-#requests-section {
-    margin-top: 2rem;
-    border-top: 1px solid #ddd;
-    padding-top: 1rem;
 }
 
 .friend-request-item {
@@ -460,6 +452,81 @@ button {
 
 .friend-request-reject:hover {
     background: #da190b;
+}
+
+#friend-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 0.5rem;
+}
+
+.friend-tab {
+    padding: 0.6rem 1rem;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.friend-tab:hover {
+    color: #333;
+}
+
+.friend-tab.active {
+    color: rgb(158, 211, 175);
+    border-bottom-color: rgb(158, 211, 175);
+}
+
+.friend-tab-content {
+    display: none;
+}
+
+.friend-tab-content.active {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.friend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: #f5f5f5;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+}
+
+.friend-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.friend-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.friend-username {
+    font-weight: bold;
+}
+
+#no-friends-message {
+    text-align: center;
+    color: #999;
+    font-style: italic;
 }
 
 /* auth */

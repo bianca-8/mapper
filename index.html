@@ -87,7 +87,13 @@
             <button id="close-add-friend">✕</button>
             <h2>Friends</h2>
             
-            <div id="send-request-section">
+            <div id="friend-tabs">
+                <button id="tab-add-request" class="friend-tab active">Send Request</button>
+                <button id="tab-requests" class="friend-tab">Requests</button>
+                <button id="tab-friends-list" class="friend-tab">My Friends</button>
+            </div>
+            
+            <div id="send-request-section" class="friend-tab-content active">
                 <h3>Send Friend Request</h3>
                 <div class="friend-field">
                     <label>Username</label>
@@ -97,10 +103,16 @@
                 <p id="friend-status"></p>
             </div>
             
-            <div id="requests-section">
+            <div id="requests-section" class="friend-tab-content">
                 <h3>Friend Requests</h3>
                 <div id="requests-list"></div>
                 <p id="no-requests-message">No pending friend requests</p>
+            </div>
+            
+            <div id="friends-list-section" class="friend-tab-content">
+                <h3>My Friends</h3>
+                <div id="friends-list"></div>
+                <p id="no-friends-message">No friends yet</p>
             </div>
         </div>
     </div>
