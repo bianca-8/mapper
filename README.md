@@ -1,5 +1,7 @@
 *NEW*
-This time, I focused on creating friending within the website between accounts. You can send and receive friend requests, see pending friend requests, and delete friend requests. (The heatmap is also not finished yet...)
+This time, I focused on creating friending within the website between accounts. You can send and receive friend requests, see pending friend requests, and delete friend requests. (The heatmap is not finished yet though...the toggle works tho!)
+
+I worked more in Supabase too since the friends are stored in the database.
 
 --------------
 
