@@ -174,13 +174,16 @@ document.getElementById('close-profile').addEventListener('click', () => {
     document.getElementById('profile-modal').style.display = 'none';
 });
 
-// heatmap toggle
+// heatmap slider toggle
 let heatmapEnabled = false;
-document.getElementById('heatmap-toggle').addEventListener('click', () => {
-    heatmapEnabled = !heatmapEnabled;
-    const btn = document.getElementById('heatmap-toggle');
-    btn.textContent = heatmapEnabled ? 'Heatmap: ON' : 'Heatmap: OFF';
-});
+const heatmapSlider = document.getElementById('heatmap-slider');
+const heatmapStatus = document.getElementById('heatmap-status');
+if (heatmapSlider && heatmapStatus) {
+    heatmapSlider.addEventListener('change', () => {
+        heatmapEnabled = heatmapSlider.checked;
+        heatmapStatus.textContent = heatmapEnabled ? 'ON' : 'OFF';
+    });
+}
 
 // add friend
 document.getElementById('add-friend-btn').addEventListener('click', async () => {
