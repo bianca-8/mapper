@@ -79,18 +79,11 @@ button {
     position: absolute;
     top: calc(-2.5vw - 1.5em);
     right: 0.5vw;
-    background: rgb(158, 211, 175);
     color: white;
     padding: 0.4vw 1vw;
-    border-radius: 1vw;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
     display: flex;
     align-items: center;
     gap: clamp(0.3em, 0.8vw, 1.2em);
-    z-index: 500;
-    transition: all 0.3s ease;
     font-size: 1.3vw;
     line-height: 1.2;
     min-width: 6vw;

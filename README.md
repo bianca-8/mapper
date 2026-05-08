@@ -22,7 +22,6 @@ If you have any suggestions for what to add feel free to tell me :D
 *To add:*
 - timeline of where you were over time
 - heatmap of places you visit most often
-- remove friends
 - display friends' circles - hover over circles allows you to see their username
 - display everyone's circles - show this if not allowed location
 

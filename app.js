@@ -176,10 +176,12 @@ document.getElementById('close-profile').addEventListener('click', () => {
 
 // heatmap slider toggle
 let heatmapEnabled = false;
+const heatmapToggle = document.getElementById('heatmap-toggle');
 const heatmapSlider = document.getElementById('heatmap-slider');
 const heatmapStatus = document.getElementById('heatmap-status');
-if (heatmapSlider && heatmapStatus) {
-    heatmapSlider.addEventListener('change', () => {
+if (heatmapToggle && heatmapSlider && heatmapStatus) {
+    heatmapToggle.addEventListener('click', () => {
+        heatmapSlider.checked = !heatmapSlider.checked;
         heatmapEnabled = heatmapSlider.checked;
         heatmapStatus.textContent = heatmapEnabled ? 'ON' : 'OFF';
     });
