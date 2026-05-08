@@ -184,6 +184,7 @@ if (heatmapToggle && heatmapSlider && heatmapStatus) {
         heatmapSlider.checked = !heatmapSlider.checked;
         heatmapEnabled = heatmapSlider.checked;
         heatmapStatus.textContent = heatmapEnabled ? 'ON' : 'OFF';
+        if (tracker) tracker.setHeatmapEnabled(heatmapEnabled);
     });
 }
 
@@ -362,9 +363,11 @@ class MapTracker {
         this.map = null;
         this.watchId = null;
         this.currentMarker = null;
+        this.customMarkerElement = null;
         this.visitedLocations = [];
         this.maskCanvas = null;
         this.pendingSave = new Set();
+        this.heatmapEnabled = false;
         this.init();
     }
 
@@ -380,6 +383,11 @@ class MapTracker {
         this.updateMask();
     }
 
+    setHeatmapEnabled(enabled) {
+        this.heatmapEnabled = enabled;
+        this.updateMask();
+    }
+
     setupMap() {
         try {
             this.map = L.map('map').setView([20, 0], 2);
@@ -390,6 +398,8 @@ class MapTracker {
 
             this.createMaskOverlay();
             this.map.on('moveend zoomend', () => this.updateMask());
+            this.map.on('zoom', () => this.updateCustomMarkerPosition());
+            this.map.on('move', () => this.updateCustomMarkerPosition());
             
             setTimeout(() => {
                 if (this.map) {
@@ -411,6 +421,11 @@ class MapTracker {
         `;
         mapContainer.appendChild(this.maskCanvas);
         
+        // custom marker
+        this.customMarkerElement = document.createElement('div');
+        this.customMarkerElement.id = 'custom-location-marker';
+        mapContainer.appendChild(this.customMarkerElement);
+        
         this.circleCanvas = document.createElement('canvas');
     }
 
@@ -427,6 +442,8 @@ class MapTracker {
         const circleCtx = this.circleCanvas.getContext('2d');
 
         ctx.clearRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
+        
+        // gray overlay
         ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
         ctx.fillRect(0, 0, this.maskCanvas.width, this.maskCanvas.height);
 
@@ -456,22 +473,43 @@ class MapTracker {
             };
             
             const rgb = hexToRgb(this.color);
-            circleCtx.fillStyle = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
             
-            for (const location of this.visitedLocations) {
-                const point = this.map.latLngToContainerPoint(location);
-                const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
-                const point2 = this.map.latLngToContainerPoint(latLng2);
-                const pixelRadius = Math.abs(point2.y - point.y);
-                circleCtx.beginPath();
-                circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
-                circleCtx.fill();
+            if (this.heatmapEnabled) {
+                // heatmap
+                circleCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
+                circleCtx.globalCompositeOperation = 'source-over';
+                
+                for (const location of this.visitedLocations) {
+                    const point = this.map.latLngToContainerPoint(location);
+                    const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                    const point2 = this.map.latLngToContainerPoint(latLng2);
+                    const pixelRadius = Math.abs(point2.y - point.y);
+                    circleCtx.beginPath();
+                    circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
+                    circleCtx.fill();
+                }
+            } else {
+                // non heatmap
+                circleCtx.fillStyle = 'white';
+                circleCtx.globalCompositeOperation = 'source-over';
+                
+                for (const location of this.visitedLocations) {
+                    const point = this.map.latLngToContainerPoint(location);
+                    const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                    const point2 = this.map.latLngToContainerPoint(latLng2);
+                    const pixelRadius = Math.abs(point2.y - point.y);
+                    circleCtx.beginPath();
+                    circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
+                    circleCtx.fill();
+                }
+                
+                circleCtx.globalCompositeOperation = 'source-in';
+                circleCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
+                circleCtx.fillRect(0, 0, this.circleCanvas.width, this.circleCanvas.height);
             }
             
             ctx.globalCompositeOperation = 'source-over';
-            ctx.globalAlpha = 0.4;
             ctx.drawImage(this.circleCanvas, 0, 0);
-            ctx.globalAlpha = 1.0;
         }
     }
 
@@ -578,6 +616,25 @@ class MapTracker {
             this.map.on('mouseup', () => { isDragging = false; });
             // END DEBUG
         }
+        
+        this.updateCustomMarkerPosition();
+    }
+
+    updateCustomMarkerPosition() {
+        if (!this.currentMarker || !this.customMarkerElement) return;
+        
+        const latlng = this.currentMarker.getLatLng();
+        const point = this.map.latLngToContainerPoint(latlng);
+        
+        this.customMarkerElement.style.left = point.x + 'px';
+        this.customMarkerElement.style.top = point.y + 'px';
+        this.customMarkerElement.style.display = 'block';
+        
+        const zoom = this.map.getZoom();
+        const scale = Math.pow(1.1, zoom - 15);
+        this.customMarkerElement.style.width = (16 * scale) + 'px';
+        this.customMarkerElement.style.height = (16 * scale) + 'px';
+        this.customMarkerElement.style.borderWidth = (3 * scale) + 'px';
     }
 
     updateDisplay(lat, lon) {

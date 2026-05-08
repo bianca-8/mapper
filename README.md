@@ -34,6 +34,9 @@ If you have any suggestions for what to add feel free to tell me :D
 - heatmap of places you visit most often
 - display friends' circles - hover over circles allows you to see their username
 - display everyone's circles - show this if not allowed location
+- fix popup on force reload
+- fix moving map around and the circles and location don't move smoothly
+- change px
 
 - notification showing you have a friend request
 - confirmation for removing friends
