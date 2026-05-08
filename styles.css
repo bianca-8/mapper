@@ -598,6 +598,21 @@ button {
     background: #da190b;
 }
 
+.friend-remove {
+    padding: 4px 8px;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-family: 'Courier New', monospace;
+}
+
+.friend-remove:hover {
+    background: #da190b;
+}
+
 /* auth */
 #auth-screen {
     position: fixed;

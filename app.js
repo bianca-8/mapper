@@ -754,6 +754,23 @@ async function loadFriends(userId) {
     }
 }
 
+async function removeFriend(friendshipId) {
+    try {
+        const { error } = await sb
+            .from('friends')
+            .delete()
+            .eq('id', friendshipId);
+        
+        if (error) {
+            return { error: error.message };
+        }
+        
+        return { success: true };
+    } catch (e) {
+        return { error: e.message };
+    }
+}
+
 async function openFriendsModal() {
     document.getElementById('add-friend-modal').style.display = 'flex';
     document.getElementById('friend-username').value = '';
@@ -770,7 +787,7 @@ async function openFriendsModal() {
     } else {
         noPendingSentMsg.style.display = 'none';
         for (const request of pendingSent) {
-            const toUser = request.to;
+            const toUser = request.to; 
             const pendingDiv = document.createElement('div');
             pendingDiv.className = 'pending-sent-item';
             
@@ -894,7 +911,17 @@ async function openFriendsModal() {
             
             friendInfo.appendChild(avatar);
             friendInfo.appendChild(friendUsername);
+            
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'friend-remove';
+            removeBtn.textContent = '✕ Remove';
+            removeBtn.addEventListener('click', async () => {
+                await removeFriend(friendship.id);
+                openFriendsModal();
+            });
+            
             friendDiv.appendChild(friendInfo);
+            friendDiv.appendChild(removeBtn);
             friendsList.appendChild(friendDiv);
         }
     }

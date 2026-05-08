@@ -22,11 +22,11 @@ If you have any suggestions for what to add feel free to tell me :D
 *To add:*
 - timeline of where you were over time
 - heatmap of places you visit most often
-- pending requests
 - remove friends
 - display friends' circles - hover over circles allows you to see their username
 - display everyone's circles - show this if not allowed location
 
+- confirmation for removing friends
 - choosing username should be optional - it automatically makes one for them if they don't choose - OR MAKE IT SO THAT YOU MUST CHOOSE BUT SAY CAN CHANGE LATER
 - in the no friends yet, add rotating messages
 - share app with others and they join - unlock perks
