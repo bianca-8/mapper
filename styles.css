@@ -110,7 +110,7 @@ button {
     position: absolute;
     top: calc(-2.5vw - 1.5em + 3vw);
     right: 0.5vw;
-    width: 300px;
+    width: 180px;
     background-color: rgba(0, 0, 0, 0.8);
     border: 2px solid white;
     border-radius: 0.5vw;
@@ -137,21 +137,25 @@ button {
 
 .slider-btn {
     color: white;
-    padding: 4px 8px;
+    padding: 0.3vh 0.5vw;
     display: grid;
-    grid-template-columns: 1fr 2vw 2.8vw;
+    grid-template-columns: auto 2.8vw 2vw;
     align-items: center;
-    gap: 0.5vw;
+    gap: 0.8vw;
     font-size: 0.9vw;
     white-space: nowrap;
+    width: 100%;
+}
+
+.slider-btn .slider-switch {
+    margin-left: 0.4vw;
 }
 
 #heatmap-status,
 #show-friends-status {
-    font-size: 0.9vw;
-    display: inline-block;
+    margin-left: 0.9vw;
     width: 2vw;
-    text-align: right;
+    text-align: left;
 }
 
 .slider-switch {

@@ -34,7 +34,6 @@ If you have any suggestions for what to add feel free to tell me :D
 - display everyone's circles - show this if not allowed location
 - fix popup on force reload
 - fix heatmap entire button flipping the switch
-- line up on/off buttons, fix toggle for ON
 
 - timeline of where you were over time (timestamps)
 - fix moving map around and the circles and location don't move smoothly

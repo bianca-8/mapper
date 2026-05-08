@@ -1041,8 +1041,8 @@ sb.auth.onAuthStateChange(async (event, session) => {
             tracker.setColor(currentProfile?.color || '#ffffff');
         }
         updateProfileButton(currentProfile);
-        document.getElementById('add-friend-btn').style.display = 'block';
-        document.getElementById('show-friends-toggle').style.display = 'block';
+        document.getElementById('add-friend-btn').style.display = 'grid';
+        document.getElementById('show-friends-toggle').style.display = 'grid';
     } else if (event === 'SIGNED_OUT') {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('profile-modal').style.display = 'none';
