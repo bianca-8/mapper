@@ -577,17 +577,33 @@ async function sendFriendRequest(fromUserId, toUsername) {
         const { data: recipientData, error: recipientError } = await sb
             .from('profiles')
             .select('id')
-            .eq('username', toUsername)
-            .single();
+            .ilike('username', toUsername);
         
-        if (recipientError || !recipientData) {
+        if (recipientError) {
+            return { error: 'Database error: ' + recipientError.message };
+        }
+        
+        if (!recipientData || recipientData.length === 0) {
             return { error: 'User not found' };
         }
         
-        const toUserId = recipientData.id;
+        const toUserId = recipientData[0].id;
         
         if (toUserId === fromUserId) {
             return { error: 'Cannot send request to yourself' };
+        }
+        
+        const user1 = fromUserId < toUserId ? fromUserId : toUserId;
+        const user2 = fromUserId < toUserId ? toUserId : fromUserId;
+        
+        const { data: existingFriendship } = await sb
+            .from('friends')
+            .select('id')
+            .eq('user_id_1', user1)
+            .eq('user_id_2', user2);
+        
+        if (existingFriendship && existingFriendship.length > 0) {
+            return { error: 'Already friends with this user' };
         }
         
         const { data: existingRequest } = await sb
@@ -595,10 +611,9 @@ async function sendFriendRequest(fromUserId, toUsername) {
             .select('id')
             .eq('from_user_id', fromUserId)
             .eq('to_user_id', toUserId)
-            .eq('status', 'pending')
-            .single();
+            .eq('status', 'pending');
         
-        if (existingRequest) {
+        if (existingRequest && existingRequest.length > 0) {
             return { error: 'Request already sent to this user' };
         }
         
