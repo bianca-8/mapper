@@ -136,34 +136,29 @@ button {
 }
 
 .slider-btn {
-    position: static;
     color: white;
-    padding: 0.4vw 1vw;
+    padding: 4px 8px;
     display: grid;
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: 1fr 2vw 2.8vw;
     align-items: center;
-    gap: clamp(0.3em, 0.8vw, 1.2em);
-    font-size: 1vw !important;
-    line-height: 1;
+    gap: 0.5vw;
+    font-size: 0.9vw;
     white-space: nowrap;
 }
 
 #heatmap-status,
 #show-friends-status {
-    font-size: 1vw !important;
-    line-height: 1;
-    white-space: nowrap;
+    font-size: 0.9vw;
     display: inline-block;
-    height: 1vw;
-    width: 2.5vw;
-    text-align: center;
+    width: 2vw;
+    text-align: right;
 }
 
 .slider-switch {
     position: relative;
     display: inline-block;
-    width: 5vw;
-    height: 2.5vw;
+    width: 2.8vw;
+    height: 1.4vw;
 }
 
 .slider-switch input {
@@ -175,24 +170,19 @@ button {
 .slider-round {
     position: absolute;
     cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background-color: #ccc;
-    border-radius: 50vw;
+    border-radius: 1.4vw;
     transition: background 0.3s;
-    min-width: 5vw;
-    min-height: 2.5vw;
 }
 
 .slider-round:before {
     position: absolute;
     content: "";
-    height: 2vw;
-    width: 2vw;
-    left: 0.3vw;
-    bottom: 0.3vw;
+    height: 1vw;
+    width: 1vw;
+    left: 0.2vw;
+    bottom: 0.2vw;
     background-color: white;
     border-radius: 50%;
     transition: transform 0.3s;
@@ -203,14 +193,7 @@ button {
 }
 
 .slider-switch input:checked + .slider-round:before {
-    transform: translateX(2.2vw);
-}
-
-#heatmap-status {
-    min-width: clamp(20px, 1.5vw, 36px);
-    display: inline-block;
-    text-align: left;
-    font-size: clamp(0.8em, 1vw, 1.1em);
+    transform: translateX(1.4vw);
 }
 
 .container {

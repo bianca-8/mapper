@@ -83,6 +83,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     tracker = new MapTracker(null, '#ffffff');
     currentProfile = null;
     updateProfileButton(null);
+    document.getElementById('show-friends-toggle').style.display = 'none';
 
 // auth
 let isSignUp = false;
@@ -1041,11 +1042,13 @@ sb.auth.onAuthStateChange(async (event, session) => {
         }
         updateProfileButton(currentProfile);
         document.getElementById('add-friend-btn').style.display = 'block';
+        document.getElementById('show-friends-toggle').style.display = 'block';
     } else if (event === 'SIGNED_OUT') {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('profile-modal').style.display = 'none';
         document.getElementById('add-friend-modal').style.display = 'none';
         document.getElementById('add-friend-btn').style.display = 'none';
+        document.getElementById('show-friends-toggle').style.display = 'none';
         
         if (tracker) {
             tracker.userId = null;
