@@ -638,6 +638,42 @@ async function loadFriendRequests(userId) {
     }
 }
 
+async function loadPendingSentRequests(userId) {
+    try {
+        const { data, error } = await sb
+            .from('friend_requests')
+            .select('id, to_user_id, to:to_user_id(username, color)')
+            .eq('from_user_id', userId)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false });
+        
+        if (error) {
+            return [];
+        }
+        
+        return data || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+async function cancelFriendRequest(requestId) {
+    try {
+        const { error } = await sb
+            .from('friend_requests')
+            .delete()
+            .eq('id', requestId);
+        
+        if (error) {
+            return { error: error.message };
+        }
+        
+        return { success: true };
+    } catch (e) {
+        return { error: e.message };
+    }
+}
+
 async function acceptFriendRequest(requestId, fromUserId, toUserId) {
     try {
         const { error: updateError } = await sb
@@ -707,6 +743,51 @@ async function openFriendsModal() {
     document.getElementById('add-friend-modal').style.display = 'flex';
     document.getElementById('friend-username').value = '';
     document.getElementById('friend-status').textContent = '';
+    
+    const pendingSent = await loadPendingSentRequests(currentProfile.id);
+    const pendingSentList = document.getElementById('pending-sent-list');
+    const noPendingSentMsg = document.getElementById('no-pending-sent-message');
+    
+    pendingSentList.innerHTML = '';
+    
+    if (pendingSent.length === 0) {
+        noPendingSentMsg.style.display = 'block';
+    } else {
+        noPendingSentMsg.style.display = 'none';
+        for (const request of pendingSent) {
+            const toUser = request.to;
+            const pendingDiv = document.createElement('div');
+            pendingDiv.className = 'pending-sent-item';
+            
+            const userInfo = document.createElement('div');
+            userInfo.className = 'pending-sent-info';
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'pending-sent-avatar';
+            avatar.style.background = toUser.color || '#9ed3af';
+            avatar.style.color = getContrastColor(toUser.color || '#9ed3af');
+            avatar.textContent = (toUser.username || '?')[0].toUpperCase();
+            
+            const username = document.createElement('span');
+            username.className = 'pending-sent-username';
+            username.textContent = toUser.username || 'Unknown';
+            
+            userInfo.appendChild(avatar);
+            userInfo.appendChild(username);
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'pending-sent-cancel';
+            cancelBtn.textContent = '✕ Cancel';
+            cancelBtn.addEventListener('click', async () => {
+                await cancelFriendRequest(request.id);
+                openFriendsModal();
+            });
+            
+            pendingDiv.appendChild(userInfo);
+            pendingDiv.appendChild(cancelBtn);
+            pendingSentList.appendChild(pendingDiv);
+        }
+    }
     
     const requests = await loadFriendRequests(currentProfile.id);
     const requestsList = document.getElementById('requests-list');

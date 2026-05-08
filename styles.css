@@ -534,6 +534,70 @@ button {
     font-style: italic;
 }
 
+#pending-sent-section {
+    margin-top: 1.5rem;
+    border-top: 1px solid #ddd;
+    padding-top: 1rem;
+}
+
+#pending-sent-section h3 {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 0.75rem;
+}
+
+#no-pending-sent-message {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}
+
+.pending-sent-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background: #f5f5f5;
+    border-radius: 5px;
+    margin-bottom: 0.5rem;
+}
+
+.pending-sent-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.pending-sent-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.pending-sent-username {
+    font-weight: bold;
+}
+
+.pending-sent-cancel {
+    padding: 4px 8px;
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-family: 'Courier New', monospace;
+}
+
+.pending-sent-cancel:hover {
+    background: #da190b;
+}
+
 /* auth */
 #auth-screen {
     position: fixed;

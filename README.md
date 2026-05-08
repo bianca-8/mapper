@@ -20,14 +20,16 @@ If you have any suggestions for what to add feel free to tell me :D
 [![Youtube Video: https://www.youtube.com/watch?v=21XojbM4FUU](https://img.youtube.com/vi/21XojbM4FUU/0.jpg)](https://youtu.be/21XojbM4FUU)
 
 *To add:*
-- choosing username should be optional - it automatically makes one for them if they don't choose - OR MAKE IT SO THAT YOU MUST CHOOSE BUT SAY CAN CHANGE LATER
-- in the no friends yet, add rotating messages
 - timeline of where you were over time
 - heatmap of places you visit most often
 - pending requests
-- make not resize friend popup
+- remove friends
 - display friends' circles - hover over circles allows you to see their username
 - display everyone's circles - show this if not allowed location
+
+- choosing username should be optional - it automatically makes one for them if they don't choose - OR MAKE IT SO THAT YOU MUST CHOOSE BUT SAY CAN CHANGE LATER
+- in the no friends yet, add rotating messages
+- share app with others and they join - unlock perks
 - add notes at a place
 - share your map - unique link
 - test actual location and moving
@@ -38,3 +40,4 @@ If you have any suggestions for what to add feel free to tell me :D
 - make circles bigger/smaller for optimal size for privacy
 - host on website
 - make into app
+- should stay logged in on app
