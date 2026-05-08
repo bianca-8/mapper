@@ -174,6 +174,15 @@ document.getElementById('close-profile').addEventListener('click', () => {
     document.getElementById('profile-modal').style.display = 'none';
 });
 
+// menu button
+const menuBtn = document.getElementById('menu-btn');
+const menuDropdown = document.getElementById('menu-dropdown');
+if (menuBtn && menuDropdown) {
+    menuBtn.addEventListener('click', () => {
+        menuDropdown.classList.toggle('hidden');
+    });
+}
+
 // heatmap slider toggle
 let heatmapEnabled = false;
 const heatmapToggle = document.getElementById('heatmap-toggle');
@@ -185,6 +194,19 @@ if (heatmapToggle && heatmapSlider && heatmapStatus) {
         heatmapEnabled = heatmapSlider.checked;
         heatmapStatus.textContent = heatmapEnabled ? 'ON' : 'OFF';
         if (tracker) tracker.setHeatmapEnabled(heatmapEnabled);
+    });
+}
+
+// show friends toggle
+let showFriendsEnabled = false;
+const showFriendsToggle = document.getElementById('show-friends-toggle');
+const showFriendsSlider = document.getElementById('show-friends-slider');
+const showFriendsStatus = document.getElementById('show-friends-status');
+if (showFriendsToggle && showFriendsSlider && showFriendsStatus) {
+    showFriendsToggle.addEventListener('click', () => {
+        showFriendsSlider.checked = !showFriendsSlider.checked;
+        showFriendsEnabled = showFriendsSlider.checked;
+        showFriendsStatus.textContent = showFriendsEnabled ? 'ON' : 'OFF';
     });
 }
 

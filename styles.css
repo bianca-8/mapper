@@ -75,6 +75,53 @@ button {
     margin-bottom: 0;
 }
 
+.circular-menu {
+    position: absolute;
+    top: calc(-2.5vw - 1.5em);
+    right: 0.5vw;
+    width: 2.5vw;
+    height: 2.5vw;
+    min-width: 40px;
+    min-height: 40px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 2px solid white;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.circular-menu:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+.circular-menu span {
+    width: 60%;
+    height: 2px;
+    background-color: white;
+    border-radius: 1px;
+}
+
+.menu-dropdown {
+    position: absolute;
+    top: calc(-2.5vw - 1.5em + 3vw);
+    right: 0.5vw;
+    width: 300px;
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 2px solid white;
+    border-radius: 0.5vw;
+    padding: 1vw;
+    z-index: 1000;
+}
+
+.menu-dropdown.hidden {
+    display: none;
+}
+
 #custom-location-marker {
     position: absolute;
     width: 16px;
@@ -89,18 +136,27 @@ button {
 }
 
 .slider-btn {
-    position: absolute;
-    top: calc(-2.5vw - 1.5em);
-    right: 0.5vw;
+    position: static;
     color: white;
     padding: 0.4vw 1vw;
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
     align-items: center;
     gap: clamp(0.3em, 0.8vw, 1.2em);
-    font-size: 1.3vw;
-    line-height: 1.2;
-    min-width: 6vw;
-    min-height: 1.8vw;
+    font-size: 1vw !important;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+#heatmap-status,
+#show-friends-status {
+    font-size: 1vw !important;
+    line-height: 1;
+    white-space: nowrap;
+    display: inline-block;
+    height: 1vw;
+    width: 2.5vw;
+    text-align: center;
 }
 
 .slider-switch {

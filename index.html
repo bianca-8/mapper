@@ -38,13 +38,28 @@
 
         <div class="container">
             <div class="map-header-container">
-                <div id="heatmap-toggle" class="slider-btn">
-                    Heatmap:
-                    <span class="slider-switch">
-                        <input type="checkbox" id="heatmap-slider" />
-                        <span class="slider-round"></span>
-                    </span>
-                    <span id="heatmap-status">OFF</span>
+                <div id="menu-btn" class="circular-menu" title="Menu">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div id="menu-dropdown" class="menu-dropdown hidden">
+                    <div id="heatmap-toggle" class="slider-btn">
+                        Heatmap:
+                        <span class="slider-switch">
+                            <input type="checkbox" id="heatmap-slider" />
+                            <span class="slider-round"></span>
+                        </span>
+                        <span id="heatmap-status">OFF</span>
+                    </div>
+                    <div id="show-friends-toggle" class="slider-btn">
+                        Show Friends:
+                        <span class="slider-switch">
+                            <input type="checkbox" id="show-friends-slider" />
+                            <span class="slider-round"></span>
+                        </span>
+                        <span id="show-friends-status">OFF</span>
+                    </div>
                 </div>
             </div>
             <div id="map"></div>
