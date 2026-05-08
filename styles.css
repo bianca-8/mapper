@@ -69,6 +69,35 @@ button {
     margin-bottom: 0;
 }
 
+.map-header-container {
+    position: relative;
+    width: 80vw;
+    margin-bottom: 0;
+}
+
+#heatmap-toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin-top: -2.5rem;
+    background: rgb(158, 211, 175);
+    color: white;
+    padding: 0.6rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+#heatmap-toggle:hover {
+    transform: scale(1.05);
+}
+
+.container {
+    position: relative;
+}
+
 .info {
     background: white;
     padding: 0.5vw 2vw;

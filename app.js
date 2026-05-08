@@ -174,6 +174,15 @@ document.getElementById('close-profile').addEventListener('click', () => {
     document.getElementById('profile-modal').style.display = 'none';
 });
 
+// heatmap toggle
+let heatmapEnabled = false;
+document.getElementById('heatmap-toggle').addEventListener('click', () => {
+    heatmapEnabled = !heatmapEnabled;
+    const btn = document.getElementById('heatmap-toggle');
+    btn.textContent = heatmapEnabled ? 'Heatmap: ON' : 'Heatmap: OFF';
+});
+
+// add friend
 document.getElementById('add-friend-btn').addEventListener('click', async () => {
     if (currentProfile) {
         await openFriendsModal();
