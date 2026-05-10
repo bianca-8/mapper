@@ -1,4 +1,7 @@
-*NEW*
+*NEW May 10*
+The heatmap now works! Toggle on/off to see the places where you visit most often. The display friend button is still a work in progress...
+
+*May 8*
 This time, I focused on creating friending within the website between accounts. You can send and receive friend requests, see pending friend requests, and delete friend requests. (The heatmap is not finished yet though...the toggle works tho!)
 
 I worked more in Supabase too since the friends are stored in the database.
@@ -35,6 +38,7 @@ If you have any suggestions for what to add feel free to tell me :D
 - fix popup on force reload
 - fix heatmap entire button flipping the switch
 
+- fix overlay location dot sizing during map resize
 - timeline of where you were over time (timestamps)
 - fix moving map around and the circles and location don't move smoothly
 - change px

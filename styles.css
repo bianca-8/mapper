@@ -81,8 +81,8 @@ button {
     right: 0.5vw;
     width: 2.5vw;
     height: 2.5vw;
-    min-width: 40px;
-    min-height: 40px;
+    min-width: 3.4vw;
+    min-height: 3.4vw;
     background-color: rgba(255, 255, 255, 0.2);
     border: 2px solid white;
     border-radius: 50%;
@@ -101,7 +101,7 @@ button {
 
 .circular-menu span {
     width: 60%;
-    height: 2px;
+    height: 0.2vw;
     background-color: white;
     border-radius: 1px;
 }
@@ -110,7 +110,7 @@ button {
     position: absolute;
     top: calc(-2.5vw - 1.5em + 3vw);
     right: 0.5vw;
-    width: 180px;
+    width: 17vw;
     background-color: rgba(0, 0, 0, 0.8);
     border: 2px solid white;
     border-radius: 0.5vw;
@@ -261,7 +261,7 @@ button {
     transform: translateY(-50%);
     background: rgb(158, 211, 175);
     color: white;
-    padding: 10px 20px;
+    padding: 1vw 2vw;
     border-radius: 5px;
     border: 3px solid white;
     cursor: pointer;
