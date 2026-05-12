@@ -84,6 +84,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     currentProfile = null;
     updateProfileButton(null);
     document.getElementById('show-friends-toggle').style.display = 'none';
+    document.getElementById('heatmap-toggle').style.display = 'none';
+    document.getElementById('menu-btn').style.display = 'none';
 
 // auth
 let isSignUp = false;
@@ -1025,6 +1027,8 @@ sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app-screen').style.display = 'flex';
+        document.getElementById('heatmap-toggle').style.display = 'grid';
+        document.getElementById('menu-btn').style.display = 'block';
         
         if (tracker) {
             tracker.userId = session.user.id;
@@ -1049,6 +1053,9 @@ sb.auth.onAuthStateChange(async (event, session) => {
         document.getElementById('add-friend-modal').style.display = 'none';
         document.getElementById('add-friend-btn').style.display = 'none';
         document.getElementById('show-friends-toggle').style.display = 'none';
+        document.getElementById('heatmap-toggle').style.display = 'none';
+        document.getElementById('menu-btn').style.display = 'none';
+        document.getElementById('menu-dropdown').style.display = 'none';
         
         if (tracker) {
             tracker.userId = null;
