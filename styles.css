@@ -93,6 +93,11 @@ button {
     gap: 4px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    z-index: 100;
+}
+
+#menu-btn:not([style*="display: none"]) {
+    display: flex !important;
 }
 
 .circular-menu:hover {

@@ -75,6 +75,10 @@ function updateProfileButton(profile) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    document.getElementById('profile-modal').style.display = 'none';
+    document.getElementById('add-friend-modal').style.display = 'none';
+    document.getElementById('menu-dropdown').classList.add('hidden');
+    
     await sb.auth.signOut();
     
     document.getElementById('auth-screen').style.display = 'none';
@@ -181,8 +185,14 @@ document.getElementById('close-profile').addEventListener('click', () => {
 const menuBtn = document.getElementById('menu-btn');
 const menuDropdown = document.getElementById('menu-dropdown');
 if (menuBtn && menuDropdown) {
-    menuBtn.addEventListener('click', () => {
+    menuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         menuDropdown.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (e) => {
+        if (e.target !== menuBtn && !menuDropdown.contains(e.target)) {
+            menuDropdown.classList.add('hidden');
+        }
     });
 }
 
@@ -1028,7 +1038,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app-screen').style.display = 'flex';
         document.getElementById('heatmap-toggle').style.display = 'grid';
-        document.getElementById('menu-btn').style.display = 'block';
+        document.getElementById('menu-btn').style.display = 'flex';
         
         if (tracker) {
             tracker.userId = session.user.id;
@@ -1055,7 +1065,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
         document.getElementById('show-friends-toggle').style.display = 'none';
         document.getElementById('heatmap-toggle').style.display = 'none';
         document.getElementById('menu-btn').style.display = 'none';
-        document.getElementById('menu-dropdown').style.display = 'none';
+        document.getElementById('menu-dropdown').classList.add('hidden');
         
         if (tracker) {
             tracker.userId = null;

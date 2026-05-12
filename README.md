@@ -37,6 +37,7 @@ If you have any suggestions for what to add feel free to tell me :D
 - display everyone's circles - show this if not allowed location
 - fix popup on force reload
 - fix heatmap entire button flipping the switch
+- waiting screen for when the map is loading
 
 - fix overlay location dot sizing during map resize
 - timeline of where you were over time (timestamps)
