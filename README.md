@@ -34,10 +34,11 @@ If you have any suggestions for what to add feel free to tell me :D
 
 *To add:*
 - display friends' circles - hover over circles allows you to see their username
-- display everyone's circles - show this if not allowed location
+- display everyone's circles - show this if not allowed location - acc this might be too laggy
 - fix popup on force reload
 - fix heatmap entire button flipping the switch
 - waiting screen for when the map is loading
+- fix circles displaying after you logout
 
 - fix overlay location dot sizing during map resize
 - timeline of where you were over time (timestamps)

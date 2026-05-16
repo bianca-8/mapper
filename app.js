@@ -132,6 +132,7 @@ document.getElementById('logout-btn').addEventListener('click', async () => {
     document.getElementById('auth-screen').style.display = 'none';
     if (tracker) {
         tracker.visitedLocations = [];
+        tracker._lastTrackedLocation = null;
         tracker.updateMask();
     }
     await sb.auth.signOut();
@@ -212,14 +213,24 @@ if (heatmapToggle && heatmapSlider && heatmapStatus) {
 
 // show friends toggle
 let showFriendsEnabled = false;
+let friendsLoadInProgress = false;
 const showFriendsToggle = document.getElementById('show-friends-toggle');
 const showFriendsSlider = document.getElementById('show-friends-slider');
 const showFriendsStatus = document.getElementById('show-friends-status');
 if (showFriendsToggle && showFriendsSlider && showFriendsStatus) {
-    showFriendsToggle.addEventListener('click', () => {
+    showFriendsToggle.addEventListener('click', async () => {
         showFriendsSlider.checked = !showFriendsSlider.checked;
         showFriendsEnabled = showFriendsSlider.checked;
         showFriendsStatus.textContent = showFriendsEnabled ? 'ON' : 'OFF';
+        
+        if (showFriendsEnabled && tracker) {
+            if (friendsLoadInProgress) return;
+            friendsLoadInProgress = true;
+            await tracker.loadFriendsLocations();
+            friendsLoadInProgress = false;
+        } else if (!showFriendsEnabled && tracker) {
+            tracker.clearFriendsLocations();
+        }
     });
 }
 
@@ -400,9 +411,11 @@ class MapTracker {
         this.currentMarker = null;
         this.customMarkerElement = null;
         this.visitedLocations = [];
+        this.friendsLocations = {}; // {friendId: {color, locations: []}}
         this.maskCanvas = null;
         this.pendingSave = new Set();
         this.heatmapEnabled = false;
+        this._lastTrackedLocation = null;
         this.init();
     }
 
@@ -487,6 +500,7 @@ class MapTracker {
         
         const radiusM = 500; // circle radius (meters)
 
+        // remove user locations from mask
         for (const location of this.visitedLocations) {
             const point = this.map.latLngToContainerPoint(location);
             const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
@@ -495,6 +509,20 @@ class MapTracker {
             ctx.beginPath();
             ctx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
             ctx.fill();
+        }
+
+        // remove friend locations from mask
+        for (const friendId in this.friendsLocations) {
+            const friend = this.friendsLocations[friendId];
+            for (const location of friend.locations) {
+                const point = this.map.latLngToContainerPoint(location);
+                const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                const point2 = this.map.latLngToContainerPoint(latLng2);
+                const pixelRadius = Math.abs(point2.y - point.y);
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
 
         if (this.userId) {
@@ -510,7 +538,7 @@ class MapTracker {
             const rgb = hexToRgb(this.color);
             
             if (this.heatmapEnabled) {
-                // heatmap
+                // heatmap - user locations
                 circleCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
                 circleCtx.globalCompositeOperation = 'source-over';
                 
@@ -523,8 +551,25 @@ class MapTracker {
                     circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
                     circleCtx.fill();
                 }
+
+                // heatmap - friend locations
+                for (const friendId in this.friendsLocations) {
+                    const friend = this.friendsLocations[friendId];
+                    const friendRgb = hexToRgb(friend.color);
+                    circleCtx.fillStyle = `rgba(${friendRgb.r}, ${friendRgb.g}, ${friendRgb.b}, 0.3)`;
+                    
+                    for (const location of friend.locations) {
+                        const point = this.map.latLngToContainerPoint(location);
+                        const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                        const point2 = this.map.latLngToContainerPoint(latLng2);
+                        const pixelRadius = Math.abs(point2.y - point.y);
+                        circleCtx.beginPath();
+                        circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
+                        circleCtx.fill();
+                    }
+                }
             } else {
-                // non heatmap
+                // non heatmap - user locations
                 circleCtx.fillStyle = 'white';
                 circleCtx.globalCompositeOperation = 'source-over';
                 
@@ -537,10 +582,58 @@ class MapTracker {
                     circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
                     circleCtx.fill();
                 }
+
+                // non heatmap - friend locations
+                for (const friendId in this.friendsLocations) {
+                    const friend = this.friendsLocations[friendId];
+                    for (const location of friend.locations) {
+                        const point = this.map.latLngToContainerPoint(location);
+                        const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                        const point2 = this.map.latLngToContainerPoint(latLng2);
+                        const pixelRadius = Math.abs(point2.y - point.y);
+                        circleCtx.beginPath();
+                        circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
+                        circleCtx.fill();
+                    }
+                }
                 
                 circleCtx.globalCompositeOperation = 'source-in';
                 circleCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
                 circleCtx.fillRect(0, 0, this.circleCanvas.width, this.circleCanvas.height);
+
+                // add friend colours
+                for (const friendId in this.friendsLocations) {
+                    const friend = this.friendsLocations[friendId];
+                    const friendRgb = hexToRgb(friend.color);
+                    
+                    circleCtx.save();
+                    circleCtx.globalCompositeOperation = 'destination-out';
+                    circleCtx.fillStyle = 'rgba(0, 0, 0, 1)';
+                    
+                    for (const location of friend.locations) {
+                        const point = this.map.latLngToContainerPoint(location);
+                        const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                        const point2 = this.map.latLngToContainerPoint(latLng2);
+                        const pixelRadius = Math.abs(point2.y - point.y);
+                        circleCtx.beginPath();
+                        circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
+                        circleCtx.fill();
+                    }
+                    circleCtx.restore();
+                    
+                    circleCtx.globalCompositeOperation = 'source-over';
+                    circleCtx.fillStyle = `rgba(${friendRgb.r}, ${friendRgb.g}, ${friendRgb.b}, 0.4)`;
+                    
+                    for (const location of friend.locations) {
+                        const point = this.map.latLngToContainerPoint(location);
+                        const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                        const point2 = this.map.latLngToContainerPoint(latLng2);
+                        const pixelRadius = Math.abs(point2.y - point.y);
+                        circleCtx.beginPath();
+                        circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
+                        circleCtx.fill();
+                    }
+                }
             }
             
             ctx.globalCompositeOperation = 'source-over';
@@ -549,20 +642,103 @@ class MapTracker {
     }
 
     async loadLocationsFromDB() {
+        if (!this.userId) {
+            return;
+        }
+        
+        // paginate for 1000+ rows
+        const pageSize = 1000;
+        let page = 0;
+        let allData = [];
+
+        while (true) {
+            const from = page * pageSize;
+            const to = from + pageSize - 1;
+            const { data, error } = await sb
+                .from('visited_locations')
+                .select('lat, lng')
+                .eq('user_id', this.userId)
+                .range(from, to);
+
+            if (error) {
+                console.error('loadLocationsFromDB error:', error);
+                break;
+            }
+
+            if (!data || data.length === 0) break;
+
+            allData = allData.concat(data);
+
+            if (data.length < pageSize) break;
+            page++;
+        }
+
+        for (const row of allData) {
+            this.visitedLocations.push(L.latLng(row.lat, row.lng));
+        }
+        this.updateMask();
+    }
+
+    async loadFriendsLocations() {
         if (!this.userId) return;
         
-        const { data, error } = await sb
-            .from('visited_locations')
-            .select('lat, lng')
-            .eq('user_id', this.userId);
-
-        if (error) {
+        // list friends
+        const { data: friendsData, error: friendsError } = await sb
+            .from('friends')
+            .select('id, user_id_1, user_id_2, friend1:user_id_1(username, color), friend2:user_id_2(username, color)')
+            .or(`user_id_1.eq.${this.userId},user_id_2.eq.${this.userId}`);
+        
+        if (friendsError) {
+            console.error('Error loading friends:', friendsError);
             return;
         }
 
-        for (const row of data) {
-            this.visitedLocations.push(L.latLng(row.lat, row.lng));
+        if (!friendsData || friendsData.length === 0) {
+            return;
         }
+        
+        // load friend locations
+        for (const friendship of friendsData) {
+            const friendId = friendship.user_id_1 === this.userId ? friendship.user_id_2 : friendship.user_id_1;
+            const friendInfo = friendship.user_id_1 === this.userId ? friendship.friend2 : friendship.friend1;
+            
+            const pageSize = 1000;
+            let page = 0;
+            let allLocations = [];
+
+            while (true) {
+                const from = page * pageSize;
+                const to = from + pageSize - 1;
+                const { data: locations, error: locError } = await sb
+                    .from('visited_locations')
+                    .select('lat, lng')
+                    .eq('user_id', friendId)
+                    .range(from, to);
+
+                if (locError) {
+                    console.error('Error loading locations for friend', friendId, ':', locError);
+                    break;
+                }
+
+                if (!locations || locations.length === 0) break;
+                allLocations = allLocations.concat(locations);
+                if (locations.length < pageSize) break;
+                page++;
+            }
+
+            if (allLocations.length > 0) {
+                this.friendsLocations[friendId] = {
+                    color: friendInfo?.color || '#ffffff',
+                    locations: allLocations.map(row => L.latLng(row.lat, row.lng))
+                };
+            }
+        }
+        
+        this.updateMask();
+    }
+
+    clearFriendsLocations() {
+        this.friendsLocations = {};
         this.updateMask();
     }
 
@@ -573,17 +749,18 @@ class MapTracker {
         if (this.pendingSave.has(key)) return;
         this.pendingSave.add(key);
 
-        const { error } = await sb
+        const { data, error } = await sb
             .from('visited_locations')
             .insert({ user_id: this.userId, lat, lng });
+        this.pendingSave.delete(key);
     }
     
     addVisitedLocation(lat, lon) {
         // add location if not too close to prev
-        const last = this.visitedLocations[this.visitedLocations.length - 1];
-        const isNew = !last || this.calculateDistance(last.lat, last.lng, lat, lon) > 0.0001;
+        const isNew = !this._lastTrackedLocation || this.calculateDistance(this._lastTrackedLocation.lat, this._lastTrackedLocation.lng, lat, lon) > 0.0001;
 
         if (isNew) {
+            this._lastTrackedLocation = { lat, lng: lon };
             this.visitedLocations.push(L.latLng(lat, lon));
             this.updateMask();
             this.saveLocationToDB(lat, lon);
@@ -1033,8 +1210,11 @@ async function openFriendsModal() {
     }
 }
 
+let _lastSignedInUserId = null;
 sb.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
+        if (_lastSignedInUserId === session.user.id) return;
+        _lastSignedInUserId = session.user.id;
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app-screen').style.display = 'flex';
         document.getElementById('heatmap-toggle').style.display = 'grid';
@@ -1070,10 +1250,12 @@ sb.auth.onAuthStateChange(async (event, session) => {
         if (tracker) {
             tracker.userId = null;
             tracker.visitedLocations = [];
+            tracker._lastTrackedLocation = null;
             tracker.setColor('#ffffff');
             tracker.updateMask();
         }
         
+        _lastSignedInUserId = null;
         currentProfile = null;
         updateProfileButton(null);
     }
