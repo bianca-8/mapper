@@ -538,20 +538,6 @@ class MapTracker {
             const rgb = hexToRgb(this.color);
             
             if (this.heatmapEnabled) {
-                // heatmap - user locations
-                circleCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
-                circleCtx.globalCompositeOperation = 'source-over';
-                
-                for (const location of this.visitedLocations) {
-                    const point = this.map.latLngToContainerPoint(location);
-                    const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
-                    const point2 = this.map.latLngToContainerPoint(latLng2);
-                    const pixelRadius = Math.abs(point2.y - point.y);
-                    circleCtx.beginPath();
-                    circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
-                    circleCtx.fill();
-                }
-
                 // heatmap - friend locations
                 for (const friendId in this.friendsLocations) {
                     const friend = this.friendsLocations[friendId];
@@ -568,9 +554,9 @@ class MapTracker {
                         circleCtx.fill();
                     }
                 }
-            } else {
-                // non heatmap - user locations
-                circleCtx.fillStyle = 'white';
+                
+                // heatmap - user locations
+                circleCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
                 circleCtx.globalCompositeOperation = 'source-over';
                 
                 for (const location of this.visitedLocations) {
@@ -581,59 +567,44 @@ class MapTracker {
                     circleCtx.beginPath();
                     circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
                     circleCtx.fill();
-                }
+                }  
+            } else {
+                // non-heatmap - draw on own canvas then flood fill
 
-                // non heatmap - friend locations
-                for (const friendId in this.friendsLocations) {
-                    const friend = this.friendsLocations[friendId];
-                    for (const location of friend.locations) {
-                        const point = this.map.latLngToContainerPoint(location);
+                const drawPersonFlat = (locations, personRgb) => {
+                    const tmp = document.createElement('canvas');
+                    tmp.width  = this.circleCanvas.width;
+                    tmp.height = this.circleCanvas.height;
+                    const tc = tmp.getContext('2d');
+
+                    // draw circles
+                    tc.fillStyle = 'rgba(0,0,0,1)';
+                    for (const location of locations) {
+                        const point  = this.map.latLngToContainerPoint(location);
                         const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
                         const point2 = this.map.latLngToContainerPoint(latLng2);
                         const pixelRadius = Math.abs(point2.y - point.y);
-                        circleCtx.beginPath();
-                        circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
-                        circleCtx.fill();
+                        tc.beginPath();
+                        tc.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
+                        tc.fill();
                     }
-                }
-                
-                circleCtx.globalCompositeOperation = 'source-in';
-                circleCtx.fillStyle = `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, 0.4)`;
-                circleCtx.fillRect(0, 0, this.circleCanvas.width, this.circleCanvas.height);
 
-                // add friend colours
-                for (const friendId in this.friendsLocations) {
-                    const friend = this.friendsLocations[friendId];
-                    const friendRgb = hexToRgb(friend.color);
-                    
-                    circleCtx.save();
-                    circleCtx.globalCompositeOperation = 'destination-out';
-                    circleCtx.fillStyle = 'rgba(0, 0, 0, 1)';
-                    
-                    for (const location of friend.locations) {
-                        const point = this.map.latLngToContainerPoint(location);
-                        const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
-                        const point2 = this.map.latLngToContainerPoint(latLng2);
-                        const pixelRadius = Math.abs(point2.y - point.y);
-                        circleCtx.beginPath();
-                        circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
-                        circleCtx.fill();
-                    }
-                    circleCtx.restore();
-                    
+                    // flood fill
+                    tc.globalCompositeOperation = 'source-in';
+                    tc.fillStyle = `rgba(${personRgb.r}, ${personRgb.g}, ${personRgb.b}, 0.5)`;
+                    tc.fillRect(0, 0, tmp.width, tmp.height);
+
+                    // draw on circleCanvas
                     circleCtx.globalCompositeOperation = 'source-over';
-                    circleCtx.fillStyle = `rgba(${friendRgb.r}, ${friendRgb.g}, ${friendRgb.b}, 0.4)`;
-                    
-                    for (const location of friend.locations) {
-                        const point = this.map.latLngToContainerPoint(location);
-                        const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
-                        const point2 = this.map.latLngToContainerPoint(latLng2);
-                        const pixelRadius = Math.abs(point2.y - point.y);
-                        circleCtx.beginPath();
-                        circleCtx.arc(point.x, point.y, pixelRadius, 0, Math.PI * 2);
-                        circleCtx.fill();
-                    }
+                    circleCtx.drawImage(tmp, 0, 0);
+                };
+
+                // draw friends then user
+                for (const friendId in this.friendsLocations) {
+                    const friend = this.friendsLocations[friendId];
+                    drawPersonFlat(friend.locations, hexToRgb(friend.color));
                 }
+                drawPersonFlat(this.visitedLocations, rgb);
             }
             
             ctx.globalCompositeOperation = 'source-over';

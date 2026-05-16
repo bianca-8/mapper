@@ -1,4 +1,9 @@
-*NEW May 10*
+*NEW May 16*
+I got friend maps to display!!!!!!
+
+[![Youtube Video: https://www.youtube.com/watch?v=hTJSj_IuoIs](https://img.youtube.com/vi/hTJSj_IuoIs/0.jpg)](https://youtu.be/hTJSj_IuoIs)
+
+*May 10*
 The heatmap now works! Toggle on/off to see the places where you visit most often. The display friend button is still a work in progress...
 
 *May 8*
@@ -11,9 +16,6 @@ I worked more in Supabase too since the friends are stored in the database.
 Mapper is a map to see where you've gone in the world and where your friends have gone! I've travelled to many places and I came up with this idea similar to an app that allows you to see what your friends are listening to on Spotify, instead this allows you to see where your friends have been. Who knows, maybe you guys travelled to the same place without even knowing!
 
 I'm still working on some features but the core functionality is all there.
-
-First hackatime submission: 13 hours 51 mins
-Current hackatime submission: 20 hours
 
 Moving around might be difficult so if you hold shift + drag your location it will also move the dot and create cirles for where you've been (This is just temporary for testing).
 
@@ -28,24 +30,27 @@ If you have any suggestions for what to add feel free to tell me :D
 - Uncover the map as you walk around (for now you can also just drag your location dot)
 - Log in to save your locations
 - Choose your profile picture, username and custom color
-- Friend others to see your mutual locations (coming soon)
+- Friend others to see your mutual locations
+- Toggle heatmap on to show where you and your friends visit more frequently
 
 [![Youtube Video: https://www.youtube.com/watch?v=21XojbM4FUU](https://img.youtube.com/vi/21XojbM4FUU/0.jpg)](https://youtu.be/21XojbM4FUU)
 
 *To add:*
-- display friends' circles - hover over circles allows you to see their username
+- hover over circles allows you to see their username
 - display everyone's circles - show this if not allowed location - acc this might be too laggy
 - fix popup on force reload
 - fix heatmap entire button flipping the switch
 - waiting screen for when the map is loading
 - fix circles displaying after you logout
+- option to add past locations through writing the name in a textbox and it colours out that location
 
+- favourite place, puts a star there
+- add want to go places
 - fix overlay location dot sizing during map resize
 - timeline of where you were over time (timestamps)
 - fix moving map around and the circles and location don't move smoothly
-- change px
+- change px to vw/vh
 - chat/react to places - be able to select a circle if you click it and there's actions such as react, which sends to the chat with that person
-- timestamps
 - notification showing you have a friend request
 - confirmation for removing friends
 - choosing username should be optional - it automatically makes one for them if they don't choose - OR MAKE IT SO THAT YOU MUST CHOOSE BUT SAY CAN CHANGE LATER
@@ -56,9 +61,10 @@ If you have any suggestions for what to add feel free to tell me :D
 - test actual location and moving
 - check default username profile picture is green
 - add login with username
-- fix incognito image
+- fix incognito image - just turn into sign in button
 - reset password, double auth
 - make circles bigger/smaller for optimal size for privacy
+- fix mobile
 - host on website
 - make into app
 - should stay logged in on app
