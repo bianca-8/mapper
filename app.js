@@ -1324,3 +1324,78 @@ sb.auth.onAuthStateChange(async (event, session) => {
         updateProfileButton(null);
     }
 });
+
+
+// share
+async function createShareLink() {
+    const {
+        data: { session }
+    } = await sb.auth.getSession();
+
+    if (!session) {
+        alert("Please sign in");
+        return;
+    }
+
+    const token = crypto.randomUUID();
+
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { error } = await sb
+        .from('share_links')
+        .insert({
+            token,
+            created_by: session.user.id,
+            shared_user_id: session.user.id,
+            expires_at: expiresAt
+        });
+
+    if (error) {
+        console.error(error);
+        alert("Failed to create share link");
+        return;
+    }
+
+    const url =
+        window.location.origin +
+        "/share.html?token=" +
+        token;
+
+    document.getElementById('share-link').value = url;
+
+    QRCode.toCanvas(
+        document.getElementById('qr-code'),
+        url,
+        function (error) {
+            if (error) console.error(error);
+        }
+    );
+
+    document.getElementById('share-modal').style.display = 'flex';
+}
+
+document
+    .getElementById('share-map-btn')
+    .addEventListener('click', createShareLink);
+
+document
+    .getElementById('copy-share-link')
+    .addEventListener('click', async () => {
+
+        const input =
+            document.getElementById('share-link');
+
+        await navigator.clipboard.writeText(
+            input.value
+        );
+
+        alert("Copied!");
+    });
+
+document
+    .getElementById('close-share-modal')
+    .addEventListener('click', () => {
+
+        document.getElementById('share-modal')
+            .style.display = 'none';
+    });

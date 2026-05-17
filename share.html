@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>Shared Map</title>
+
+    <link rel="stylesheet"
+          href="styles.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+    <div id="map"
+         style="width:100vw;height:100vh;"></div>
+
+    <script>
+        const SUPABASE_URL =
+            'https://tlngsxgivvbxhtojihzu.supabase.co';
+
+        const SUPABASE_ANON_KEY =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsbmdzeGdpdnZieGh0b2ppaHp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY5NjM3MjYsImV4cCI6MjA5MjUzOTcyNn0.wIBL6jU2pezmZ88RuL18_NLnnckIMzMaNcfQXXOY_eA';
+
+        const sb = supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_ANON_KEY
+        );
+
+        async function loadSharedMap() {
+
+            const params =
+                new URLSearchParams(window.location.search);
+
+            const token = params.get("token");
+
+            if (!token) {
+                document.body.innerHTML = "Invalid link";
+                return;
+            }
+
+            const { data, error } = await sb
+                .from('share_links')
+                .select('*')
+                .eq('token', token)
+                .single();
+                    
+            if (error || !data) {
+                document.body.innerHTML = "Share not found";
+                return;
+            }
+            
+            console.log("Shared user:", data.shared_user_id); // DELETE AFTER
+
+            const { data: locations } = await sb
+                .from('visited_locations')
+                .select('*')
+                .eq('user_id', data.shared_user_id);
+
+                console.log(locations); // DELETE AFTER
+            }
+
+            loadSharedMap();
+    </script>
+
+</body>
+</html>
