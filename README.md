@@ -32,36 +32,35 @@ If you have any suggestions for what to add feel free to tell me :D
 - Choose your profile picture, username and custom color
 - Friend others to see your mutual locations
 - Toggle heatmap on to show where you and your friends visit more frequently
+- Toggle timestamps on to see when you or your friends were at that location
 
 [![Youtube Video: https://www.youtube.com/watch?v=21XojbM4FUU](https://img.youtube.com/vi/21XojbM4FUU/0.jpg)](https://youtu.be/21XojbM4FUU)
 
 
 *Fix:*
-- fix mobile
+- fix mobile view
 - fix incognito image - just turn into sign in button
-- fix popup on force reload
 - fix heatmap entire button flipping the switch
 - fix overlay location dot sizing during map resize
 - fix moving map around and the circles and location don't move smoothly
 - change px to vw/vh
 - choosing username should be optional - it automatically makes one for them if they don't choose - OR MAKE IT SO THAT YOU MUST CHOOSE BUT SAY CAN CHANGE LATER
+- check default username profile picture is green
+- add login with username
 
 *New features:*
+- add notes at a place
+- share your map - unique link + qr code
 - display everyone's circles - show this if not allowed location - acc this might be too laggy
 - option to add past locations through writing the name in a textbox and it colours out that location
 - favourite place, puts a star there
 - add want to go places
-- timeline of where you were over time (timestamps)
 - chat/react to places - be able to select a circle if you click it and there's actions such as react, which sends to the chat with that person
 - notification showing you have a friend request
 - confirmation for removing friends
 - in the no friends yet, add rotating messages
 - share app with others and they join - unlock perks
-- add notes at a place
-- share your map - unique link
 - test actual location and moving
-- check default username profile picture is green
-- add login with username
 - reset password, double auth
 - make circles bigger/smaller for optimal size for privacy
 - host on website

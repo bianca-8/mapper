@@ -493,6 +493,12 @@ class MapTracker {
         mapContainer.appendChild(this.customMarkerElement);
 
         mapContainer.addEventListener('mousemove', (e) => {
+        const showFriendsSlider = document.getElementById('show-friends-slider');
+        const timestampsSlider = document.getElementById('timestamps-slider');
+        const showFriendsEnabled = showFriendsSlider ? showFriendsSlider.checked : false;
+        const timestampsEnabled = timestampsSlider ? timestampsSlider.checked : false;
+        
+        if (!showFriendsEnabled && !timestampsEnabled) return;
         if (!Object.keys(this.friendsLocations).length && !this.visitedLocations.length) return;
         const rect = mapContainer.getBoundingClientRect();
         const mx = e.clientX - rect.left;
@@ -518,9 +524,11 @@ class MapTracker {
             return false;
         };
 
-        outer: for (const friendId in this.friendsLocations) {
-            const friend = this.friendsLocations[friendId];
-            if (checkLocations(friend.locations, friend.username || 'Friend')) break outer;
+        if (showFriendsEnabled) {
+            outer: for (const friendId in this.friendsLocations) {
+                const friend = this.friendsLocations[friendId];
+                if (checkLocations(friend.locations, friend.username || 'Friend')) break outer;
+            }
         }
 
         if (!found && timestampsEnabled) {
@@ -589,8 +597,9 @@ class MapTracker {
         for (const friendId in this.friendsLocations) {
             const friend = this.friendsLocations[friendId];
             for (const location of friend.locations) {
-                const point = this.map.latLngToContainerPoint(location);
-                const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                const ll = location.latlng || location;
+                const point = this.map.latLngToContainerPoint(ll);
+                const latLng2 = L.latLng(ll.lat + (radiusM / 111320), ll.lng);
                 const point2 = this.map.latLngToContainerPoint(latLng2);
                 const pixelRadius = Math.abs(point2.y - point.y);
                 ctx.beginPath();
@@ -619,8 +628,9 @@ class MapTracker {
                     circleCtx.fillStyle = `rgba(${friendRgb.r}, ${friendRgb.g}, ${friendRgb.b}, 0.3)`;
                     
                     for (const location of friend.locations) {
-                        const point = this.map.latLngToContainerPoint(location);
-                        const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                        const ll = location.latlng || location;
+                        const point = this.map.latLngToContainerPoint(ll);
+                        const latLng2 = L.latLng(ll.lat + (radiusM / 111320), ll.lng);
                         const point2 = this.map.latLngToContainerPoint(latLng2);
                         const pixelRadius = Math.abs(point2.y - point.y);
                         circleCtx.beginPath();
@@ -776,7 +786,7 @@ class MapTracker {
                 this.friendsLocations[friendId] = {
                     color: friendInfo?.color || '#ffffff',
                     username: friendInfo?.username || 'Friend',
-                    locations: allLocations.map(row => L.latLng(row.lat, row.lng))
+                    locations: allLocations.map(row => ({ latlng: L.latLng(row.lat, row.lng), ts: row.created_at }))
                 };
             }
         }
