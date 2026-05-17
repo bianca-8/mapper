@@ -35,25 +35,26 @@ If you have any suggestions for what to add feel free to tell me :D
 
 [![Youtube Video: https://www.youtube.com/watch?v=21XojbM4FUU](https://img.youtube.com/vi/21XojbM4FUU/0.jpg)](https://youtu.be/21XojbM4FUU)
 
-*To add:*
-- hover over circles allows you to see their username
-- display everyone's circles - show this if not allowed location - acc this might be too laggy
+
+*Fix:*
+- fix mobile
+- fix incognito image - just turn into sign in button
 - fix popup on force reload
 - fix heatmap entire button flipping the switch
-- waiting screen for when the map is loading
-- fix circles displaying after you logout
-- option to add past locations through writing the name in a textbox and it colours out that location
-
-- favourite place, puts a star there
-- add want to go places
 - fix overlay location dot sizing during map resize
-- timeline of where you were over time (timestamps)
 - fix moving map around and the circles and location don't move smoothly
 - change px to vw/vh
+- choosing username should be optional - it automatically makes one for them if they don't choose - OR MAKE IT SO THAT YOU MUST CHOOSE BUT SAY CAN CHANGE LATER
+
+*New features:*
+- display everyone's circles - show this if not allowed location - acc this might be too laggy
+- option to add past locations through writing the name in a textbox and it colours out that location
+- favourite place, puts a star there
+- add want to go places
+- timeline of where you were over time (timestamps)
 - chat/react to places - be able to select a circle if you click it and there's actions such as react, which sends to the chat with that person
 - notification showing you have a friend request
 - confirmation for removing friends
-- choosing username should be optional - it automatically makes one for them if they don't choose - OR MAKE IT SO THAT YOU MUST CHOOSE BUT SAY CAN CHANGE LATER
 - in the no friends yet, add rotating messages
 - share app with others and they join - unlock perks
 - add notes at a place
@@ -61,10 +62,8 @@ If you have any suggestions for what to add feel free to tell me :D
 - test actual location and moving
 - check default username profile picture is green
 - add login with username
-- fix incognito image - just turn into sign in button
 - reset password, double auth
 - make circles bigger/smaller for optimal size for privacy
-- fix mobile
 - host on website
 - make into app
 - should stay logged in on app

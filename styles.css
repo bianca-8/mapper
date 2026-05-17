@@ -75,6 +75,21 @@ button {
     margin-bottom: 0;
 }
 
+#map-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(158, 211, 175, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1vw;
+    font-family: 'Courier New', monospace;
+    font-size: 1.2vw;
+    color: white;
+    letter-spacing: 0.1em;
+}
+
 .circular-menu {
     position: absolute;
     top: calc(-2.5vw - 1.5em);
@@ -115,7 +130,7 @@ button {
     position: absolute;
     top: calc(-2.5vw - 1.5em + 3vw);
     right: 0.5vw;
-    width: 17vw;
+    width: 20vw;
     background-color: rgba(0, 0, 0, 0.8);
     border: 2px solid white;
     border-radius: 0.5vw;
@@ -819,4 +834,18 @@ button {
     font-size: 0.85rem;
     background: #eee;
     color: #333;
+}
+
+#friend-tooltip {
+    display: none;
+    position: fixed;
+    background: rgba(0,0,0,0.75);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    pointer-events: none;
+    z-index: 2000;
+    white-space: nowrap;
 }

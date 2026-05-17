@@ -234,6 +234,19 @@ if (showFriendsToggle && showFriendsSlider && showFriendsStatus) {
     });
 }
 
+// timestamps toggle
+let timestampsEnabled = false;
+const timestampsToggle = document.getElementById('timestamps-toggle');
+const timestampsSlider = document.getElementById('timestamps-slider');
+const timestampsStatus = document.getElementById('timestamps-status');
+if (timestampsToggle) {
+    timestampsToggle.addEventListener('click', () => {
+        timestampsSlider.checked = !timestampsSlider.checked;
+        timestampsEnabled = timestampsSlider.checked;
+        timestampsStatus.textContent = timestampsEnabled ? 'ON' : 'OFF';
+    });
+}
+
 // add friend
 document.getElementById('add-friend-btn').addEventListener('click', async () => {
     if (currentProfile) {
@@ -420,10 +433,15 @@ class MapTracker {
     }
 
     async init() {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        this.setupMap();
-        await this.loadLocationsFromDB();
-        this.startTracking();
+        document.getElementById('map-loading').style.display = 'flex';
+        try {
+            await new Promise(resolve => setTimeout(resolve, 100));
+            this.setupMap();
+            await this.loadLocationsFromDB();
+            this.startTracking();
+        } finally {
+            document.getElementById('map-loading').style.display = 'none';
+        }
     }
 
     setColor(color) {
@@ -473,6 +491,62 @@ class MapTracker {
         this.customMarkerElement = document.createElement('div');
         this.customMarkerElement.id = 'custom-location-marker';
         mapContainer.appendChild(this.customMarkerElement);
+
+        mapContainer.addEventListener('mousemove', (e) => {
+        if (!Object.keys(this.friendsLocations).length && !this.visitedLocations.length) return;
+        const rect = mapContainer.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const radiusM = 500;
+        let found = null;
+        let foundTs = null;
+
+        const checkLocations = (locations, label) => {
+            for (const loc of locations) {
+                const ll = loc.latlng || loc;
+                const point = this.map.latLngToContainerPoint(ll);
+                const latLng2 = L.latLng(ll.lat + (radiusM / 111320), ll.lng);
+                const point2 = this.map.latLngToContainerPoint(latLng2);
+                const pixelRadius = Math.abs(point2.y - point.y);
+                const dist = Math.sqrt((mx - point.x) ** 2 + (my - point.y) ** 2);
+                if (dist <= pixelRadius) {
+                    found = label;
+                    foundTs = loc.ts || null;
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        outer: for (const friendId in this.friendsLocations) {
+            const friend = this.friendsLocations[friendId];
+            if (checkLocations(friend.locations, friend.username || 'Friend')) break outer;
+        }
+
+        if (!found && timestampsEnabled) {
+            checkLocations(this.visitedLocations, 'me');
+        }
+
+        const tooltip = document.getElementById('friend-tooltip');
+        if (found) {
+            let text = found === 'me' ? '' : found;
+            if (timestampsEnabled && foundTs) {
+                const d = new Date(foundTs);
+                const ts = d.toLocaleString();
+                text = text ? `${text} · ${ts}` : ts;
+            }
+            tooltip.textContent = text;
+            tooltip.style.display = text ? 'block' : 'none';
+            tooltip.style.left = (e.clientX + 12) + 'px';
+            tooltip.style.top = (e.clientY - 10) + 'px';
+        } else {
+            tooltip.style.display = 'none';
+        }
+    });
+
+    mapContainer.addEventListener('mouseleave', () => {
+        document.getElementById('friend-tooltip').style.display = 'none';
+    });
         
         this.circleCanvas = document.createElement('canvas');
     }
@@ -502,8 +576,8 @@ class MapTracker {
 
         // remove user locations from mask
         for (const location of this.visitedLocations) {
-            const point = this.map.latLngToContainerPoint(location);
-            const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+            const point = this.map.latLngToContainerPoint(location.latlng);
+            const latLng2 = L.latLng(location.latlng.lat + (radiusM / 111320), location.latlng.lng);
             const point2 = this.map.latLngToContainerPoint(latLng2);
             const pixelRadius = Math.abs(point2.y - point.y);
             ctx.beginPath();
@@ -560,8 +634,8 @@ class MapTracker {
                 circleCtx.globalCompositeOperation = 'source-over';
                 
                 for (const location of this.visitedLocations) {
-                    const point = this.map.latLngToContainerPoint(location);
-                    const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                    const point = this.map.latLngToContainerPoint(location.latlng);
+                    const latLng2 = L.latLng(location.latlng.lat + (radiusM / 111320), location.latlng.lng);
                     const point2 = this.map.latLngToContainerPoint(latLng2);
                     const pixelRadius = Math.abs(point2.y - point.y);
                     circleCtx.beginPath();
@@ -580,8 +654,9 @@ class MapTracker {
                     // draw circles
                     tc.fillStyle = 'rgba(0,0,0,1)';
                     for (const location of locations) {
-                        const point  = this.map.latLngToContainerPoint(location);
-                        const latLng2 = L.latLng(location.lat + (radiusM / 111320), location.lng);
+                        const ll = location.latlng || location;
+                        const point  = this.map.latLngToContainerPoint(ll);
+                        const latLng2 = L.latLng(ll.lat + (radiusM / 111320), ll.lng);
                         const point2 = this.map.latLngToContainerPoint(latLng2);
                         const pixelRadius = Math.abs(point2.y - point.y);
                         tc.beginPath();
@@ -627,7 +702,7 @@ class MapTracker {
             const to = from + pageSize - 1;
             const { data, error } = await sb
                 .from('visited_locations')
-                .select('lat, lng')
+                .select('lat, lng, created_at')
                 .eq('user_id', this.userId)
                 .range(from, to);
 
@@ -645,7 +720,7 @@ class MapTracker {
         }
 
         for (const row of allData) {
-            this.visitedLocations.push(L.latLng(row.lat, row.lng));
+            this.visitedLocations.push({ latlng: L.latLng(row.lat, row.lng), ts: row.created_at });
         }
         this.updateMask();
     }
@@ -682,7 +757,7 @@ class MapTracker {
                 const to = from + pageSize - 1;
                 const { data: locations, error: locError } = await sb
                     .from('visited_locations')
-                    .select('lat, lng')
+                    .select('lat, lng, created_at')
                     .eq('user_id', friendId)
                     .range(from, to);
 
@@ -700,6 +775,7 @@ class MapTracker {
             if (allLocations.length > 0) {
                 this.friendsLocations[friendId] = {
                     color: friendInfo?.color || '#ffffff',
+                    username: friendInfo?.username || 'Friend',
                     locations: allLocations.map(row => L.latLng(row.lat, row.lng))
                 };
             }
@@ -732,7 +808,7 @@ class MapTracker {
 
         if (isNew) {
             this._lastTrackedLocation = { lat, lng: lon };
-            this.visitedLocations.push(L.latLng(lat, lon));
+            this.visitedLocations.push({ latlng: L.latLng(lat, lon), ts: new Date().toISOString() });
             this.updateMask();
             this.saveLocationToDB(lat, lon);
         }
@@ -1190,6 +1266,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
         document.getElementById('app-screen').style.display = 'flex';
         document.getElementById('heatmap-toggle').style.display = 'grid';
         document.getElementById('menu-btn').style.display = 'flex';
+        document.getElementById('timestamps-toggle').style.display = 'grid';
         
         if (tracker) {
             tracker.userId = session.user.id;
@@ -1202,8 +1279,13 @@ sb.auth.onAuthStateChange(async (event, session) => {
         }
         
         if (tracker) {
-            await tracker.loadLocationsFromDB();
-            tracker.setColor(currentProfile?.color || '#ffffff');
+            document.getElementById('map-loading').style.display = 'flex';
+            try {
+                await tracker.loadLocationsFromDB();
+                tracker.setColor(currentProfile?.color || '#ffffff');
+            } finally {
+                document.getElementById('map-loading').style.display = 'none';
+            }
         }
         updateProfileButton(currentProfile);
         document.getElementById('add-friend-btn').style.display = 'grid';
@@ -1217,6 +1299,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
         document.getElementById('heatmap-toggle').style.display = 'none';
         document.getElementById('menu-btn').style.display = 'none';
         document.getElementById('menu-dropdown').classList.add('hidden');
+        document.getElementById('timestamps-toggle').style.display = 'none';
         
         if (tracker) {
             tracker.userId = null;

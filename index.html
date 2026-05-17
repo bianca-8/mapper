@@ -60,9 +60,19 @@
                         </span>
                         <span id="show-friends-status">OFF</span>
                     </div>
+                    <div id="timestamps-toggle" class="slider-btn">
+                        Timestamps:
+                        <span class="slider-switch">
+                            <input type="checkbox" id="timestamps-slider" />
+                            <span class="slider-round"></span>
+                        </span>
+                        <span id="timestamps-status">OFF</span>
+                    </div>
                 </div>
             </div>
-            <div id="map"></div>
+            <div id="map">
+                <div id="map-loading">Loading map...</div>
+            </div>
             <div class="info">
                 <p>Current Location: <span id="coords">Not found</span></p>
             </div>
@@ -149,5 +159,6 @@
     </div>
 
     <script src="app.js"></script>
+    <div id="friend-tooltip"></div>
 </body>
 </html>
