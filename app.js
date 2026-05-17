@@ -1357,9 +1357,11 @@ async function createShareLink() {
     }
 
     const url =
-        window.location.origin +
-        "/share.html?token=" +
-        token;
+    window.location.href
+        .replace("index.html", "")
+        .replace(/\/$/, "")
+    + "/share.html?token=" +
+    token;
 
     document.getElementById('share-link').value = url;
 
