@@ -311,8 +311,7 @@ button {
     margin-left: 0.4vw;
 }
 
-#heatmap-status,
-#show-friends-status {
+#heatmap-status, #show-friends-status, #timestamps-status {
     margin-left: 0.9vw;
     width: 2vw;
     text-align: left;

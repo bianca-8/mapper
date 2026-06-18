@@ -98,19 +98,33 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('profile-modal').style.display = 'none';
     document.getElementById('add-friend-modal').style.display = 'none';
     document.getElementById('menu-dropdown').classList.add('hidden');
-    
-    await sb.auth.signOut();
-    
-    document.getElementById('auth-screen').style.display = 'none';
-    document.getElementById('app-screen').style.display = 'flex';
-    
+
+    const {
+        data: { session }
+    } = await sb.auth.getSession();
+
     tracker = new MapTracker(null, '#ffffff');
     currentProfile = null;
     updateProfileButton(null);
-    document.getElementById('show-friends-toggle').style.display = 'none';
-    document.getElementById('heatmap-toggle').style.display = 'none';
-    document.getElementById('menu-btn').style.display = 'none';
-    document.getElementById('share-map-btn').style.display = 'none';
+
+    if (session) {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'flex';
+
+        tracker.userId = session.user.id;
+
+        currentProfile = await loadProfile(session.user.id);
+
+        tracker.visitedLocations = [];
+        await tracker.loadLocationsFromDB();
+        tracker.setColor(currentProfile?.color || '#ffffff');
+
+        updateProfileButton(currentProfile);
+    } else {
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'flex';
+    }
+
 
 // auth
 let isSignUp = false;
@@ -473,6 +487,15 @@ class MapTracker {
             this.startTracking();
         } finally {
             document.getElementById('map-loading').style.display = 'none';
+
+            if (this.userId) {
+                document.getElementById('add-friend-btn').style.display = 'grid';
+                document.getElementById('share-map-btn').style.display = 'grid';
+                document.getElementById('show-friends-toggle').style.display = 'grid';
+                document.getElementById('heatmap-toggle').style.display = 'grid';
+                document.getElementById('timestamps-toggle').style.display = 'grid';
+                document.getElementById('menu-btn').style.display = 'flex';
+            }
         }
     }
 
@@ -1256,10 +1279,10 @@ sb.auth.onAuthStateChange(async (event, session) => {
         _lastSignedInUserId = session.user.id;
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('app-screen').style.display = 'flex';
-        document.getElementById('heatmap-toggle').style.display = 'grid';
-        document.getElementById('menu-btn').style.display = 'flex';
-        document.getElementById('timestamps-toggle').style.display = 'grid';
-        document.getElementById('share-map-btn').style.display = 'block';
+        document.getElementById('heatmap-toggle').style.display = 'none';
+        document.getElementById('menu-btn').style.display = 'none';
+        document.getElementById('timestamps-toggle').style.display = 'none';
+        document.getElementById('share-map-btn').style.display = 'none';
         
         if (tracker) {
             tracker.userId = session.user.id;
@@ -1280,10 +1303,13 @@ sb.auth.onAuthStateChange(async (event, session) => {
                 document.getElementById('map-loading').style.display = 'none';
             }
         }
-        updateProfileButton(currentProfile);
         document.getElementById('add-friend-btn').style.display = 'grid';
         document.getElementById('share-map-btn').style.display = 'grid';
         document.getElementById('show-friends-toggle').style.display = 'grid';
+        document.getElementById('heatmap-toggle').style.display = 'grid';
+        document.getElementById('timestamps-toggle').style.display = 'grid';
+        document.getElementById('menu-btn').style.display = 'flex';
+        updateProfileButton(currentProfile);
     } else if (event === 'SIGNED_OUT') {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('profile-modal').style.display = 'none';
