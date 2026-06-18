@@ -5,6 +5,26 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let tracker = null;
 let currentProfile = null;
+let expiryOption = 7;
+
+const selected = document.getElementById("expiry-selected");
+const options = document.getElementById("expiry-options");
+
+selected.addEventListener("click", () => {
+    options.classList.toggle("hidden");
+});
+
+document.querySelectorAll(".expiry-option").forEach(option => {
+    option.addEventListener("click", () => {
+
+        expiryOption = option.dataset.days;
+
+        selected.innerHTML = option.textContent + '<span id="expiry-arrow">▼</span>';
+
+        options.classList.add("hidden");
+    });
+
+});
 
 // profile
 async function loadProfile(userId) {
@@ -90,6 +110,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('show-friends-toggle').style.display = 'none';
     document.getElementById('heatmap-toggle').style.display = 'none';
     document.getElementById('menu-btn').style.display = 'none';
+    document.getElementById('share-map-btn').style.display = 'none';
 
 // auth
 let isSignUp = false;
@@ -393,6 +414,7 @@ document.getElementById('send-friend-request').addEventListener('click', async (
 
 document.getElementById('avatar-upload').addEventListener('change', async (e) => {
     const file = e.target.files[0];
+
     if (!file) return;
     const statusEl = document.getElementById('profile-status');
     statusEl.textContent = 'Uploading...';
@@ -401,11 +423,21 @@ document.getElementById('avatar-upload').addEventListener('change', async (e) =>
     const ext = file.name.split('.').pop();
     const path = `${userId}/avatar.${ext}`;
     const { error: uploadError } = await sb.storage.from('avatars').upload(path, file, { upsert: true });
-    if (uploadError) { statusEl.textContent = uploadError.message; return; }
+
+    if (uploadError) { 
+        statusEl.textContent = uploadError.message; 
+        return; 
+    }
+    
     const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path);
     const avatarUrl = urlData.publicUrl + '?t=' + Date.now();
     const { error: updateError } = await sb.from('profiles').update({ avatar_url: avatarUrl }).eq('id', userId);
-    if (updateError) { statusEl.textContent = updateError.message; return; }
+
+    if (updateError) { 
+        statusEl.textContent = updateError.message; 
+        return; 
+    }
+
     currentProfile.avatar_url = avatarUrl;
     statusEl.textContent = 'Photo updated!';
     updateProfileButton(currentProfile);
@@ -710,11 +742,7 @@ class MapTracker {
         while (true) {
             const from = page * pageSize;
             const to = from + pageSize - 1;
-            const { data, error } = await sb
-                .from('visited_locations')
-                .select('lat, lng, created_at')
-                .eq('user_id', this.userId)
-                .range(from, to);
+            const { data, error } = await sb.from('visited_locations').select('lat, lng, created_at').eq('user_id', this.userId).range(from, to);
 
             if (error) {
                 console.error('loadLocationsFromDB error:', error);
@@ -739,10 +767,7 @@ class MapTracker {
         if (!this.userId) return;
         
         // list friends
-        const { data: friendsData, error: friendsError } = await sb
-            .from('friends')
-            .select('id, user_id_1, user_id_2, friend1:user_id_1(username, color), friend2:user_id_2(username, color)')
-            .or(`user_id_1.eq.${this.userId},user_id_2.eq.${this.userId}`);
+        const { data: friendsData, error: friendsError } = await sb.from('friends').select('id, user_id_1, user_id_2, friend1:user_id_1(username, color), friend2:user_id_2(username, color)').or(`user_id_1.eq.${this.userId},user_id_2.eq.${this.userId}`);
         
         if (friendsError) {
             console.error('Error loading friends:', friendsError);
@@ -765,11 +790,7 @@ class MapTracker {
             while (true) {
                 const from = page * pageSize;
                 const to = from + pageSize - 1;
-                const { data: locations, error: locError } = await sb
-                    .from('visited_locations')
-                    .select('lat, lng, created_at')
-                    .eq('user_id', friendId)
-                    .range(from, to);
+                const { data: locations, error: locError } = await sb.from('visited_locations').select('lat, lng, created_at').eq('user_id', friendId).range(from, to);
 
                 if (locError) {
                     console.error('Error loading locations for friend', friendId, ':', locError);
@@ -806,9 +827,7 @@ class MapTracker {
         if (this.pendingSave.has(key)) return;
         this.pendingSave.add(key);
 
-        const { data, error } = await sb
-            .from('visited_locations')
-            .insert({ user_id: this.userId, lat, lng });
+        const { data, error } = await sb.from('visited_locations').insert({ user_id: this.userId, lat, lng });
         this.pendingSave.delete(key);
     }
     
@@ -914,10 +933,7 @@ class MapTracker {
 // friending
 async function sendFriendRequest(fromUserId, toUsername) {
     try {
-        const { data: recipientData, error: recipientError } = await sb
-            .from('profiles')
-            .select('id')
-            .ilike('username', toUsername);
+        const { data: recipientData, error: recipientError } = await sb.from('profiles').select('id').ilike('username', toUsername);
         
         if (recipientError) {
             return { error: 'Database error: ' + recipientError.message };
@@ -936,22 +952,13 @@ async function sendFriendRequest(fromUserId, toUsername) {
         const user1 = fromUserId < toUserId ? fromUserId : toUserId;
         const user2 = fromUserId < toUserId ? toUserId : fromUserId;
         
-        const { data: existingFriendship } = await sb
-            .from('friends')
-            .select('id')
-            .eq('user_id_1', user1)
-            .eq('user_id_2', user2);
+        const { data: existingFriendship } = await sb.from('friends').select('id').eq('user_id_1', user1).eq('user_id_2', user2);
         
         if (existingFriendship && existingFriendship.length > 0) {
             return { error: 'Already friends with this user' };
         }
         
-        const { data: existingRequest } = await sb
-            .from('friend_requests')
-            .select('id')
-            .eq('from_user_id', fromUserId)
-            .eq('to_user_id', toUserId)
-            .eq('status', 'pending');
+        const { data: existingRequest } = await sb.from('friend_requests').select('id').eq('from_user_id', fromUserId).eq('to_user_id', toUserId).eq('status', 'pending');
         
         if (existingRequest && existingRequest.length > 0) {
             return { error: 'Request already sent to this user' };
@@ -976,12 +983,7 @@ async function sendFriendRequest(fromUserId, toUsername) {
 
 async function loadFriendRequests(userId) {
     try {
-        const { data, error } = await sb
-            .from('friend_requests')
-            .select('id, from_user_id, from:from_user_id(username, color)')
-            .eq('to_user_id', userId)
-            .eq('status', 'pending')
-            .order('created_at', { ascending: false });
+        const { data, error } = await sb.from('friend_requests').select('id, from_user_id, from:from_user_id(username, color)').eq('to_user_id', userId).eq('status', 'pending').order('created_at', { ascending: false });
         
         if (error) {
             return [];
@@ -995,12 +997,7 @@ async function loadFriendRequests(userId) {
 
 async function loadPendingSentRequests(userId) {
     try {
-        const { data, error } = await sb
-            .from('friend_requests')
-            .select('id, to_user_id, to:to_user_id(username, color)')
-            .eq('from_user_id', userId)
-            .eq('status', 'pending')
-            .order('created_at', { ascending: false });
+        const { data, error } = await sb.from('friend_requests').select('id, to_user_id, to:to_user_id(username, color)').eq('from_user_id', userId).eq('status', 'pending').order('created_at', { ascending: false });
         
         if (error) {
             return [];
@@ -1014,10 +1011,7 @@ async function loadPendingSentRequests(userId) {
 
 async function cancelFriendRequest(requestId) {
     try {
-        const { error } = await sb
-            .from('friend_requests')
-            .delete()
-            .eq('id', requestId);
+        const { error } = await sb.from('friend_requests').delete().eq('id', requestId);
         
         if (error) {
             return { error: error.message };
@@ -1031,10 +1025,7 @@ async function cancelFriendRequest(requestId) {
 
 async function acceptFriendRequest(requestId, fromUserId, toUserId) {
     try {
-        const { error: updateError } = await sb
-            .from('friend_requests')
-            .update({ status: 'accepted' })
-            .eq('id', requestId);
+        const { error: updateError } = await sb.from('friend_requests').update({ status: 'accepted' }).eq('id', requestId);
         
         if (updateError) {
             return { error: updateError.message };
@@ -1060,10 +1051,7 @@ async function acceptFriendRequest(requestId, fromUserId, toUserId) {
 
 async function rejectFriendRequest(requestId) {
     try {
-        const { error } = await sb
-            .from('friend_requests')
-            .update({ status: 'rejected' })
-            .eq('id', requestId);
+        const { error } = await sb.from('friend_requests').update({ status: 'rejected' }).eq('id', requestId);
         
         if (error) {
             return { error: error.message };
@@ -1077,10 +1065,7 @@ async function rejectFriendRequest(requestId) {
 
 async function loadFriends(userId) {
     try {
-        const { data, error } = await sb
-            .from('friends')
-            .select('id, user_id_1, user_id_2, friend1:user_id_1(username, color), friend2:user_id_2(username, color)')
-            .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`);
+        const { data, error } = await sb.from('friends').select('id, user_id_1, user_id_2, friend1:user_id_1(username, color), friend2:user_id_2(username, color)').or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`);
         
         if (error) {
             console.error('Friends load error:', error);
@@ -1096,10 +1081,7 @@ async function loadFriends(userId) {
 
 async function removeFriend(friendshipId) {
     try {
-        const { error } = await sb
-            .from('friends')
-            .delete()
-            .eq('id', friendshipId);
+        const { error } = await sb.from('friends').delete().eq('id', friendshipId);
         
         if (error) {
             return { error: error.message };
@@ -1277,6 +1259,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
         document.getElementById('heatmap-toggle').style.display = 'grid';
         document.getElementById('menu-btn').style.display = 'flex';
         document.getElementById('timestamps-toggle').style.display = 'grid';
+        document.getElementById('share-map-btn').style.display = 'block';
         
         if (tracker) {
             tracker.userId = session.user.id;
@@ -1299,17 +1282,20 @@ sb.auth.onAuthStateChange(async (event, session) => {
         }
         updateProfileButton(currentProfile);
         document.getElementById('add-friend-btn').style.display = 'grid';
+        document.getElementById('share-map-btn').style.display = 'grid';
         document.getElementById('show-friends-toggle').style.display = 'grid';
     } else if (event === 'SIGNED_OUT') {
         document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('profile-modal').style.display = 'none';
         document.getElementById('add-friend-modal').style.display = 'none';
         document.getElementById('add-friend-btn').style.display = 'none';
+        document.getElementById("share-map-btn").style.display = "none";
         document.getElementById('show-friends-toggle').style.display = 'none';
         document.getElementById('heatmap-toggle').style.display = 'none';
         document.getElementById('menu-btn').style.display = 'none';
         document.getElementById('menu-dropdown').classList.add('hidden');
         document.getElementById('timestamps-toggle').style.display = 'none';
+        document.getElementById('share-map-btn').style.display = 'none';
         
         if (tracker) {
             tracker.userId = null;
@@ -1328,9 +1314,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
 // share
 async function createShareLink() {
-    const {
-        data: { session }
-    } = await sb.auth.getSession();
+    const { data: { session } } = await sb.auth.getSession();
 
     if (!session) {
         alert("Please sign in");
@@ -1339,11 +1323,13 @@ async function createShareLink() {
 
     const token = crypto.randomUUID();
 
-    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    let expiresAt = null;
 
-    const { error } = await sb
-        .from('share_links')
-        .insert({
+    if (expiryOption !== "never") {
+        expiresAt = new Date(Date.now() + Number(expiryOption) * 24 * 60 * 60 * 1000).toISOString();
+    }
+
+    const { error } = await sb.from('share_links').insert({
             token,
             created_by: session.user.id,
             shared_user_id: session.user.id,
@@ -1356,48 +1342,52 @@ async function createShareLink() {
         return;
     }
 
-    const url =
-    window.location.href
-        .replace("index.html", "")
-        .replace(/\/$/, "")
-    + "/share.html?token=" +
-    token;
+    const url = window.location.href.replace("index.html", "").replace(/\/$/, "") + "/share.html?token=" + token;
 
     document.getElementById('share-link').value = url;
 
-    QRCode.toCanvas(
-        document.getElementById('qr-code'),
-        url,
-        function (error) {
-            if (error) console.error(error);
-        }
-    );
+    const canvas = document.getElementById("qr-code");
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    document.getElementById('share-modal').style.display = 'flex';
+    QRCode.toCanvas(canvas, url, function (error) {
+        if (error) console.error(error);
+    });
+
+    document.getElementById('share-modal').classList.remove('hidden');
 }
 
-document
-    .getElementById('share-map-btn')
-    .addEventListener('click', createShareLink);
+document.getElementById('share-map-btn').addEventListener('click', createShareLink);
 
-document
-    .getElementById('copy-share-link')
-    .addEventListener('click', async () => {
+document.getElementById('copy-share-link').addEventListener('click', async () => {
 
-        const input =
-            document.getElementById('share-link');
+    const input = document.getElementById('share-link');
+    const button = document.getElementById('copy-share-link');
 
-        await navigator.clipboard.writeText(
-            input.value
-        );
+    await navigator.clipboard.writeText(input.value);
 
-        alert("Copied!");
-    });
+    button.textContent = "Copied!";
 
-document
-    .getElementById('close-share-modal')
-    .addEventListener('click', () => {
+    setTimeout(() => {
+        button.textContent = "Copy Link";
+    }, 1500);
+});
 
-        document.getElementById('share-modal')
-            .style.display = 'none';
-    });
+document.getElementById('close-share-modal').addEventListener('click', () => {
+
+        document.getElementById('share-modal').classList.add('hidden');
+});
+
+document.getElementById("share-modal").addEventListener("click", (e) => {
+    if (e.target.id === "share-modal") {
+        document.getElementById("share-modal").classList.add("hidden");
+    }
+});
+
+document.addEventListener("click", (e) => {
+
+    if (!document.getElementById("expiry-dropdown").contains(e.target)) {
+        options.classList.add("hidden");
+    }
+
+});

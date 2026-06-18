@@ -60,6 +60,146 @@ button {
     transition: all 0.3s ease;
 }
 
+/* share */
+#share-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    display: none;
+}
+
+#share-modal:not(.hidden) {
+    display: flex;
+}
+
+#share-panel {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    width: 380px;
+    max-width: 90vw;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    position: relative;
+    font-family: 'Courier New', monospace;
+}
+
+#share-panel h2 {
+    text-align: center;
+    color: #333;
+}
+
+#close-share-modal {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0;
+}
+
+#share-link {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+#qr-code {
+    display: block;
+    width: 220px;
+    height: 220px;
+    margin: 0 auto;
+}
+
+#copy-share-link {
+    width: 100%;
+    background: rgb(158,211,175);
+    color: white;
+    font-family: 'Courier New', monospace;
+    border-radius: 0.5rem;
+}
+
+#share-description {
+    text-align: center;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.share-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.share-field label {
+    font-size: 0.8rem;
+    color: #999;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+#expiry-dropdown {
+    position: relative;
+}
+
+#expiry-selected {
+    padding: 0.7rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    background: white;
+    cursor: pointer;
+    color: black;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.2s;
+}
+
+#expiry-selected:hover {
+    border-color: rgb(158,211,175);
+}
+
+#expiry-arrow {
+    font-size: 0.8rem;
+    transition: transform .2s;
+}
+
+#expiry-options {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    z-index: 100;
+}
+
+.expiry-option {
+    color: black;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    transition: .2s;
+}
+
+.expiry-option:hover {
+    background: rgb(158,211,175);
+    color: white;
+}
+
+/* map */
 #map {
     width: 80vw;
     height: 70vh;
@@ -274,25 +414,29 @@ button {
 
 #profile-btn:hover { transform: translateY(-50%) scale(1.1); }
 
-#add-friend-btn {
+#left-buttons {
     position: absolute;
     left: 2vw;
     top: 50%;
     transform: translateY(-50%);
+    display: flex;
+    gap: 1vw;
+    z-index: 500;
+}
+
+#add-friend-btn, #share-map-btn {
+    position: static;
+    transform: none;
     background: rgb(158, 211, 175);
     color: white;
     padding: 1vw 2vw;
-    border-radius: 5px;
     border: 3px solid white;
-    cursor: pointer;
+    border-radius: 5px;
     font-weight: bold;
-    z-index: 500;
-    transition: transform 0.2s;
-    display: none;
 }
 
-#add-friend-btn:hover {
-    transform: translateY(-50%) scale(1.05);
+#add-friend-btn:hover, #share-map-btn:hover {
+    transform: scale(1.05);
 }
 
 #profile-avatar {
@@ -300,12 +444,13 @@ button {
     height: 100%;
     object-fit: cover;
     border-radius: 50%;
+}
+
 @media (max-width: 600px) {
     #profile-btn {
         width: 32px;
         height: 32px;
     }
-}
 }
 
 #profile-modal {

@@ -6,7 +6,7 @@
     <meta name="viewport"
           content="width=device-width, initial-scale=1.0" />
 
-    <title>Shared Map</title>
+    <title>Shared Map</title> <!-- change to _username_'s map -->
 
     <link rel="stylesheet"
           href="styles.css">
@@ -58,15 +58,11 @@
                 document.body.innerHTML = "Share not found";
                 return;
             }
-            
-            console.log("Shared user:", data.shared_user_id); // DELETE AFTER
 
             const { data: locations } = await sb
                 .from('visited_locations')
                 .select('*')
                 .eq('user_id', data.shared_user_id);
-
-                console.log(locations); // DELETE AFTER
             }
 
             loadSharedMap();

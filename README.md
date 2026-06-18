@@ -38,6 +38,11 @@ If you have any suggestions for what to add feel free to tell me :D
 
 
 *Fix:*
+- fix share
+- share should include thru messages, tell them to create account to friend the person
+- forgot password
+- stay signed in after reload
+- stop asking location
 - fix mobile view
 - fix incognito image - just turn into sign in button
 - fix heatmap entire button flipping the switch
@@ -49,6 +54,7 @@ If you have any suggestions for what to add feel free to tell me :D
 - add login with username
 
 *New features:*
+- change icons into ppl's profile pictures - show friend current location on map
 - add notes at a place
 - share your map - unique link + qr code
 - display everyone's circles - show this if not allowed location - acc this might be too laggy
@@ -66,3 +72,9 @@ If you have any suggestions for what to add feel free to tell me :D
 - host on website
 - make into app
 - should stay logged in on app
+
+
+App updates
+- https://docs.expo.dev/get-started/start-developing/
+- https://expo.dev/get-started?account_type=personal&from=signup
+- run `npx expo start` to start a server
